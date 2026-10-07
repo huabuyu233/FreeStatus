@@ -280,11 +280,13 @@ export function mountSidebar() {
     document.body.appendChild(rootEl);
     toggleEl = el('button', 'freestatus-toggle', 'FS');
     toggleEl.title = 'FreeStatus 自由状态栏';
+    toggleEl.classList.toggle('active', settings.sidebarOpen);
     toggleEl.addEventListener('click', () => {
         const s = getSettings();
         s.sidebarOpen = !s.sidebarOpen;
         saveSettings();
         rootEl.classList.toggle('open', s.sidebarOpen);
+        toggleEl.classList.toggle('active', s.sidebarOpen);
     });
     document.body.appendChild(toggleEl);
     renderSidebar();

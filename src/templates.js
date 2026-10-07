@@ -16,7 +16,7 @@ export const DEFAULT_TEMPLATE = {
 export function defaultSettings() {
     return {
         enabled: true,
-        sidebarOpen: true,
+        sidebarOpen: false,
         hideBlocks: true,
         injection: 'interceptor',
         injectProtocol: true,
