@@ -1,0 +1,64 @@
+<div class="freestatus_settings">
+    <div class="freestatus_settings_title">FreeStatus 自由状态栏</div>
+
+    <div class="freestatus_settings_section" data-section="general">
+        <div class="fs-section-head"><span class="fs-caret">▸</span>通用</div>
+        <div class="fs-section-body">
+            <label class="checkbox_label"><input type="checkbox" id="fs_enabled" checked> 启用插件</label>
+            <label class="checkbox_label"><input type="checkbox" id="fs_hide_blocks" checked> 隐藏消息中的原始状态块</label>
+        </div>
+    </div>
+
+    <div class="freestatus_settings_section" data-section="template">
+        <div class="fs-section-head"><span class="fs-caret">▸</span>模板</div>
+        <div class="fs-section-body">
+            <div class="fs-template-bar">
+                <select id="fs_template_select"></select>
+                <button id="fs_template_new" class="menu_button">新建</button>
+                <button id="fs_template_copy" class="menu_button">复制</button>
+                <button id="fs_template_delete" class="menu_button">删除</button>
+            </div>
+            <div class="fs-template-bar">
+                <button id="fs_template_export" class="menu_button">导出 JSON</button>
+                <button id="fs_template_import" class="menu_button">导入 JSON</button>
+                <button id="fs_write_card" class="menu_button">写入角色卡</button>
+                <button id="fs_read_card" class="menu_button">从角色卡载入</button>
+            </div>
+            <div id="fs_field_table"></div>
+            <button id="fs_field_add" class="menu_button">添加字段</button>
+        </div>
+    </div>
+
+    <div class="freestatus_settings_section" data-section="protocol">
+        <div class="fs-section-head"><span class="fs-caret">▸</span>协议</div>
+        <div class="fs-section-body">
+            <div class="fs-template-bar">
+                <button id="fs_copy_prompt" class="menu_button">复制协议提示词</button>
+            </div>
+            <textarea id="fs_prompt_preview" rows="10" readonly></textarea>
+        </div>
+    </div>
+
+    <div class="freestatus_settings_section" data-section="injection">
+        <div class="fs-section-head"><span class="fs-caret">▸</span>回注</div>
+        <div class="fs-section-body">
+            <select id="fs_injection">
+                <option value="interceptor">自动注入（generate_interceptor）</option>
+                <option value="macro">仅宏（fs_state 宏）</option>
+                <option value="off">关闭（仅显示）</option>
+            </select>
+            <label class="checkbox_label"><input type="checkbox" id="fs_inject_protocol" checked> 自动注入协议规则（每轮告诉 AI 输出格式，无需世界书；关闭后需手动贴协议提示词）</label>
+            <textarea id="fs_injection_preview" rows="4" readonly></textarea>
+        </div>
+    </div>
+
+    <div class="freestatus_settings_section" data-section="diagnostics">
+        <div class="fs-section-head"><span class="fs-caret">▸</span>诊断</div>
+        <div class="fs-section-body">
+            <div>解析失败次数：<span id="fs_fail_count">0</span></div>
+            <div class="fs-template-bar">
+                <button id="fs_clear_state" class="menu_button">清空本聊状态</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.log
+.vite/
+local-templates/
+对话记录-状态插件调研.md

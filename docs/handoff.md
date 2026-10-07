@@ -1,0 +1,165 @@
+# FreeStatus 项目交接文档
+
+> 给接手的新会话或新开发者。先读本页，再按需读 `docs/design.md`、`docs/protocol.md`、`docs/roadmap.md`。
+
+## 1. 项目概览
+
+FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由模板声明，AI 在回复尾部输出一个 ` ```fs ` JSON 快照，扩展解析后存入聊天、在右侧卡片侧栏渲染、可选回注给 AI。内置一套通用模板；题材专用模板由用户在设置面板自建或导入，随实例保存，不随仓库分发。
+
+- 仓库：`git@github.com:huabuyu233/FreeStatus.git`，分支 `master`
+- 当前 HEAD 与提交历史见第 11 节
+- 部署实例：本地开发实例 `127.0.0.1:8000`；用户云酒馆 `silly.huabuyu.fun:57731`
+- 扩展形态：`manifest.json` + `index.js`（ES module），无构建步骤，运行时零依赖
+
+## 2. 当前状态
+
+已验证：
+
+- 22 个单测通过（`pnpm vitest run`），ESLint 干净（`pnpm eslint .`）
+- 本地 ST 与云酒馆均能加载扩展，侧栏与设置面板挂载成功
+- 端到端解析渲染已人工验证（云酒馆实测：AI 在回复末尾输出 ` ```fs ` 块后，侧栏出现角色卡片，各字段渲染正确）
+- 修复了云酒馆「找不到 settings.html」：模板路径不再写死目录名，改用 `import.meta.url`
+- 修复了 AI 不知道协议的问题：v1.0.1 起 interceptor 每轮自动注入协议规则与当前状态（旧版只在已有状态时注入，鸡生蛋问题）
+
+尚未实测（下一步重点）：
+
+- 回注链路（v1.0.1 的 interceptor 协议自动注入，需云端更新扩展后实测）
+- 点值即改、隐藏原始块、锁定的完整交互
+- 群聊多角色（代码按消息 `name` 与 `_char` 分角色，未跑过）
+- 随卡存储（`writeExtensionField` 写角色卡、从卡载入）
+- 设置面板分节折叠（v1.0.2，小箭头点击收起/展开，状态存 `collapsedSections`）未在浏览器复看
+
+## 3. 目录结构与职责
+
+```
+FreeStatus/
+├── manifest.json         扩展清单：display_name / js / css / generate_interceptor
+├── index.js              入口：初始化、事件挂钩、interceptor 全局函数、宏注册、设置面板挂载
+├── settings.html         设置面板静态骨架（无模板变量，纯静态 HTML）
+├── style.css             侧栏卡片与设置面板样式（含移动端）
+├── src/
+│   ├── parser.js         纯函数：```fs 解析、类型推断、值钳制、合并（可单测）
+│   ├── templates.js      内置通用模板、默认设置、协议提示词与示例生成
+│   ├── state.js          存储读写：设置 / 每聊状态 / 角色卡
+│   ├── prompt.js         紧凑状态串生成（用于回注与宏）
+│   ├── ui.js             侧栏卡片渲染、点值即改、锁定、未知键收编/忽略、隐藏原始块
+│   └── settings.js       设置面板逻辑：模板选择/编辑、字段表、导入导出、协议复制、诊断
+├── tests/parser.test.js  解析器单测
+├── eslint.config.js      ESLint 扁平配置（含浏览器全局声明）
+├── docs/                 设计、协议、范围、本交接文档
+└── package.json          pnpm 开发工具链（eslint / prettier / vitest）
+```
+
+## 4. 数据模型与存储键
+
+全局设置 `extensionSettings.freestatus`：
+
+```
+{
+  enabled: true,
+  sidebarOpen: true,
+  hideBlocks: true,                       // 隐藏消息里的原始 ```fs 块
+  injection: 'interceptor' | 'macro' | 'off',
+  templates: [Template],
+  activeTemplateId: 'default',
+  ignoredKeys: []                         // 用户选择忽略的未知键
+}
+```
+
+每聊状态 `chatMetadata.freestatus`：
+
+```
+{
+  templateId: 'default',                   // 该聊使用的模板，缺省回落到 activeTemplateId
+  chars: { [角色名]: { values: {}, locks: {}, updated: 0 } },
+  collapsed: { [角色名]: true },
+  ignoredKeys: []
+}
+```
+
+角色卡镜像 `writeExtensionField(characterId, 'freestatus', { templates, activeTemplateId, chars })`，写入路径 `data.extensions.freestatus`。
+
+Template 结构：
+
+```
+{ id, name, version, fields: [
+  { key, label, kind, min, max, color, default, inject, locked, note, sample }
+] }
+```
+
+`kind` 取值：`bar`（数值条）/ `chip`（短语）/ `text`（长文本）/ `tag`（键值字典）/ `list`（字符串数组）/ `check`（布尔）。
+
+## 5. AI 协议摘要
+
+- AI 在回复最末尾输出一个 ` ```fs ` 代码块，内容是单个 JSON 对象，全量快照。
+- `_` 前缀键是元数据，`_char` 表示状态归属角色，不渲染。
+- 解析器取最后一个块，`JSON.parse` 失败即丢弃本次、沿用旧值。
+- 完整规范、可粘贴的世界书条目、隐藏正则、失败 FAQ 见 `docs/protocol.md`。
+- 协议提示词由设置面板「复制协议提示词」按当前模板生成，用户无需手写。
+
+## 6. 已核实的 SillyTavern API（基于本地 ST 源码，勿重复调研）
+
+本地 ST 源码在 `D:\Users\huabu\project\sillytavern`。以下签名均已核对：
+
+- 扩展 JS 以 `<script type="module">` 加载：`public/scripts/extensions.js:826`
+- `generate_interceptor`（manifest 字段）指向全局函数，调用为 `await globalThis[name](chat, contextSize, abort, type)`，`chat` 是 coreChat 消息对象数组，可 push：`public/scripts/extensions.js:2024-2045`、`public/script.js:4564`
+- 事件参数：`MESSAGE_RECEIVED(messageId, type)`、`CHARACTER_MESSAGE_RENDERED(messageId, type)`、`MESSAGE_SWIPED(mesId)`、`MESSAGE_EDITED(modifyAt)`、`CHAT_CHANGED(chatId)`、`GENERATION_ENDED`；事件名见 `public/scripts/events.js`
+- `SillyTavern.getContext()` 字段：`chat`、`chatMetadata`、`saveMetadata`、`saveMetadataDebounced`、`saveSettingsDebounced`、`extensionSettings`、`eventSource`、`eventTypes`、`name1`、`name2`、`characterId`、`writeExtensionField`、`setExtensionPrompt`、`substituteParams`：`public/scripts/st-context.js:115`
+- 宏（新 API）：`import { macros } from '/scripts/macros/macro-system.js'`，`macros.register(name, { description, returns, handler })`；宏名需匹配 `/^[a-zA-Z][\w-_]*$/`（`fs_state` 合法）：`public/scripts/macros/macro-system.js`、`engine/MacroLexer.js:17`。旧 `context.registerMacro` 已弃用，代码里作为兜底
+- 模板渲染：`renderExtensionTemplateAsync(extName, templateId)` 解析为 `scripts/extensions/${extName}/${templateId}.html`：`public/scripts/extensions.js:137`。本扩展已改为用 `import.meta.url` 直接 fetch `settings.html`，避免目录名依赖
+- `writeExtensionField(characterId, key, value)` 写入 `data.extensions.${key}`，群聊时 `characterId` 可能为 undefined：`public/scripts/extensions.js:2070`
+- 设置面板容器：`#extensions_settings` 与 `#extensions_settings2`（`public/index.html:5773`、`:5791`）
+
+## 7. 开发环境与命令
+
+环境已就绪：Node v22.23.2、pnpm 12.4.2、fnm 1.39、git 2.55。Node 版本由 `.node-version` 钉住。
+
+```powershell
+# 测试与静态检查
+cd D:\Users\huabu\project\FreeStatus
+pnpm vitest run
+pnpm eslint .
+node --check index.js        # 逐个源文件语法检查
+
+# 本地 SillyTavern 实例（已克隆在 D:\Users\huabu\project\sillytavern）
+cd D:\Users\huabu\project\sillytavern
+npm run start                # http://127.0.0.1:8000
+
+# junction 挂载（免管理员，改完刷新即生效）
+New-Item -ItemType Junction `
+  -Path 'D:\Users\huabu\project\sillytavern\public\scripts\extensions\third-party\freestatus' `
+  -Target 'D:\Users\huabu\project\FreeStatus'
+```
+
+## 8. 部署与安装
+
+- 推送到 `FreeStatus/master` 后，云酒馆在「扩展 → 管理扩展程序」更新或重装，仓库 URL 不变，然后 `Ctrl+F5` 强刷。
+- 本地实例走 junction，文件改动刷新页面即生效（CSS/JS 改动建议 `Ctrl+F5`）。
+- `manifest.json` 的 `auto_update: true` 在云上是真正 git clone，可生效；本地 junction 只是目录挂载，ST 可能打印 GitError，无害。
+
+## 9. 已知问题与坑
+
+- 目录名依赖（已修）：`renderExtensionTemplateAsync` 需要 `third-party/<仓库名>`，仓库名恰好是 `FreeStatus` 而代码曾写死 `freestatus`，导致云端报「找不到 settings.html」。现改用 `new URL('./settings.html', import.meta.url)`，装到任何目录名都可用。
+- 默认模板变更（v1.1.0）：内置模板换成通用模板，仓库只带这一套。已保存过设置的实例保留其现有模板；从未保存设置的实例更新后会看到通用模板，旧状态值归入卡片「其他」分组。恢复自定义模板用设置面板的「导入 JSON」。
+- 云上扩展名显示 undefined：云端缓存的旧清单，重装/更新 + 强刷应恢复。若仍为 undefined，需排查云端 ST 版本与清单读取差异。
+- 隐藏原始块实现方式：用 DOM 隐藏（`ui.js` 的 `hideStatusBlocks` / `hideAllStatusBlocks`），未接入 ST 正则扩展的自动注册。`docs/protocol.md` 保留了手动正则方案作为备选。
+- 浏览器自动化冒烟不可用：Tabbit CLI 注册失效（需重启 Tabbit Browser）；Chrome 未安装，`browser-cdp` 的 CDP 方案也不可用。云端/本地视觉验证目前靠人工。
+- Windows 换行：仓库内 LF，Windows 检出为 CRLF，git 会打印 warning，属正常现象。
+
+## 10. 下一步待办
+
+1. 回注链路实测：云端更新扩展后直接生成，确认 AI 自动在末尾输出 ` ```fs ` 块（协议注入生效）。
+2. 群聊多角色实测，确认 `_char` 与消息 `name` 的分派。
+3. 随卡存储实测，处理群聊 `characterId` 为 undefined 的边界。
+4. 复看设置面板布局（按钮换行、字段行输入框宽度已改 CSS，未复看效果）。
+5. 补齐初版范围里未完成项：ST 正则自动注册、更完整的诊断面板。
+6. README 标注 MIT，但仓库尚无 `LICENSE` 文件，需补。
+
+## 11. 提交历史
+
+历史已于 v1.1.0 重写为单个初始提交，此前含旧内置预设的提交已从 master 移除。版本演进记录：
+
+- v1.0.0 初版：模板编辑、解析、卡片侧栏、点值即改、回注双轨
+- v1.0.1：interceptor 协议自动注入、解析器围栏误匹配修复、设置面板开关同步与注入预览
+- v1.0.2：设置面板分节折叠（小箭头收起/展开，状态记忆）
+- v1.1.0：内置模板改为通用模板，题材专用模板改由用户自建/导入；文档与测试同步
