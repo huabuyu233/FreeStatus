@@ -59,11 +59,7 @@ SillyTavern/public/scripts/extensions/third-party/FreeStatus/
 |---|---|
 | [docs/design.md](docs/design.md) | 核心设计：模板系统、协议、存储、事件、回注、UI、容错 |
 | [docs/protocol.md](docs/protocol.md) | 输出协议与可粘贴提示词（含隐藏正则、回注模板、失败 FAQ） |
-| [docs/roadmap.md](docs/roadmap.md) | 范围：初版交付清单与实验项 |
-
-## 范围
-
-初版一次交付全部功能（模板编辑、解析、卡片侧栏、点值即改、锁定、回注双轨、随卡存储、swipe 回退），清单见 [docs/roadmap.md](docs/roadmap.md)。delta 输出、独立 LLM 抽取属于实验项，做不做再定。
+| [docs/roadmap.md](docs/roadmap.md) | 功能清单与后续想法 |
 
 ## License
 
