@@ -84,25 +84,26 @@ describe('inferKind', () => {
 });
 
 describe('mergeState', () => {
-    it('merges incoming values and fills missing with defaults', () => {
+    it('replaces state with incoming values and tracks unknown keys', () => {
         const { values, unknown } = mergeState({}, { affection: 55, extra: 3 }, fields, {});
         expect(values.affection).toBe(55);
         expect(values.extra).toBe(3);
         expect(unknown).toEqual(['extra']);
-        expect(values.mood).toBe('');
-        expect(values.injured).toBe(false);
+        expect(values.mood).toBeUndefined();
+        expect(values.injured).toBeUndefined();
     });
 
-    it('respects locks', () => {
-        const prev = { affection: 10, mood: '平静' };
-        const { values } = mergeState(prev, { affection: 99, mood: '兴奋' }, fields, { affection: true });
-        expect(values.affection).toBe(10);
-        expect(values.mood).toBe('兴奋');
-    });
-
-    it('preserves values not present in incoming', () => {
+    it('treats omitted fields as empty', () => {
         const prev = { affection: 30, mood: '平静' };
         const { values } = mergeState(prev, { affection: 40 }, fields, {});
+        expect(values.affection).toBe(40);
+        expect(values.mood).toBeUndefined();
+    });
+
+    it('keeps locked fields across snapshots', () => {
+        const prev = { affection: 10, mood: '平静' };
+        const { values } = mergeState(prev, { affection: 99, mood: '兴奋' }, fields, { affection: true, mood: true });
+        expect(values.affection).toBe(10);
         expect(values.mood).toBe('平静');
     });
 });

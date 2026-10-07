@@ -5,18 +5,25 @@ export function buildStateLine(values, template) {
             continue;
         }
         const v = values[field.key];
-        if (v === undefined) {
+        if (v === undefined || v === null || v === '') {
             continue;
         }
         switch (field.kind) {
             case 'tag': {
+                if (typeof v !== 'object' || !Object.keys(v).length) {
+                    continue;
+                }
                 const entries = Object.entries(v);
                 parts.push(`${field.label}={${entries.map(([k, x]) => `${k}:${x}`).join(',')}}`);
                 break;
             }
-            case 'list':
+            case 'list': {
+                if (!Array.isArray(v) || !v.length) {
+                    continue;
+                }
                 parts.push(`${field.label}=[${v.join(',')}]`);
                 break;
+            }
             case 'check':
                 parts.push(`${field.label}=${v ? '是' : '否'}`);
                 break;

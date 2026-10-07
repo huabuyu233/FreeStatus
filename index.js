@@ -73,7 +73,7 @@ function initInterceptor() {
         let text;
         if (settings.injectProtocol) {
             const { name2 } = SillyTavern.getContext();
-            const stateText = state || '（暂无，请结合剧情与输出示例初始化各字段）';
+            const stateText = state || '（暂无，请结合剧情初始化有值的字段）';
             text = buildProtocolPrompt(template, { char: name2 || '{{char}}', stateText });
         } else {
             text = state;

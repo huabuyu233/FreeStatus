@@ -128,13 +128,10 @@ export function emptyValue(field) {
 }
 
 export function mergeState(prevValues, incoming, fields, locks = {}) {
-    const values = { ...prevValues };
+    const values = {};
     const byKey = new Map(fields.map(f => [f.key, f]));
     const unknown = [];
     for (const [key, raw] of Object.entries(incoming)) {
-        if (locks[key]) {
-            continue;
-        }
         const field = byKey.get(key);
         if (field) {
             values[key] = coerceValue(field, raw);
@@ -144,9 +141,9 @@ export function mergeState(prevValues, incoming, fields, locks = {}) {
             unknown.push(key);
         }
     }
-    for (const field of fields) {
-        if (!(field.key in values)) {
-            values[field.key] = emptyValue(field);
+    for (const [key, locked] of Object.entries(locks)) {
+        if (locked && key in prevValues) {
+            values[key] = prevValues[key];
         }
     }
     return { values, unknown };

@@ -231,6 +231,22 @@
     padding: 30px 0;
 }
 
+.fs-empty-toggle {
+    margin: 6px 0 2px;
+    padding: 2px 8px;
+    border: 1px dashed var(--fs-border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--fs-dim);
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.fs-empty-toggle:hover {
+    color: var(--fs-accent);
+    border-color: var(--fs-accent);
+}
+
 .freestatus_settings_title {
     font-weight: 700;
     margin: 8px 0;

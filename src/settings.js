@@ -132,7 +132,7 @@ function refreshPreviews() {
         let text;
         if (settings.injection === 'interceptor' && (settings.injectProtocol ?? true)) {
             const charName = SillyTavern.getContext().name2 || '{{char}}';
-            text = buildProtocolPrompt(template, { char: charName, stateText: state || '（暂无，请结合剧情与输出示例初始化各字段）' });
+            text = buildProtocolPrompt(template, { char: charName, stateText: state || '（暂无，请结合剧情初始化有值的字段）' });
         } else {
             text = state || '（暂无状态）';
         }

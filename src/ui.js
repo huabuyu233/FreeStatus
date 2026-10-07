@@ -22,7 +22,8 @@ function renderValueNode(field, value, onChange) {
         const fill = el('div', 'fs-bar-fill');
         const max = field.max ?? 100;
         const min = field.min ?? 0;
-        const pct = Math.round(((value - min) / Math.max(1, max - min)) * 100);
+        const cur = Number.isFinite(value) ? value : min;
+        const pct = Math.round(((cur - min) / Math.max(1, max - min)) * 100);
         fill.style.width = `${pct}%`;
         fill.style.background = field.color || 'var(--fs-accent)';
         wrap.appendChild(fill);
@@ -40,27 +41,29 @@ function renderValueNode(field, value, onChange) {
     }
     if (kind === 'tag') {
         const wrap = el('div', 'fs-tag');
-        for (const [k, v] of Object.entries(value)) {
+        const entries = value && typeof value === 'object' ? value : {};
+        for (const [k, v] of Object.entries(entries)) {
             const row = el('div', 'fs-tag-row');
             row.appendChild(el('span', 'fs-tag-key', k));
             row.appendChild(el('span', 'fs-tag-val', String(v)));
             wrap.appendChild(row);
         }
-        if (!Object.keys(value).length) {
+        if (!Object.keys(entries).length) {
             wrap.appendChild(el('span', 'fs-empty', '无'));
         }
-        wrap.addEventListener('click', () => editTag(value, onChange));
+        wrap.addEventListener('click', () => editTag(entries, onChange));
         return wrap;
     }
     if (kind === 'list') {
         const wrap = el('div', 'fs-list');
-        for (const item of value) {
+        const items = Array.isArray(value) ? value : [];
+        for (const item of items) {
             wrap.appendChild(el('span', 'fs-chip', item));
         }
-        if (!value.length) {
+        if (!items.length) {
             wrap.appendChild(el('span', 'fs-empty', '无'));
         }
-        wrap.addEventListener('click', () => editList(value, onChange));
+        wrap.addEventListener('click', () => editList(items, onChange));
         return wrap;
     }
     const chip = el('span', kind === 'chip' ? 'fs-chip' : 'fs-text', value || '—');
@@ -132,6 +135,9 @@ function renderRow(charName, field, value, isUnknown) {
         }
         values[field.key] = coerceValue(effective, next);
         updateCharValues(charName, values);
+        if (!isUnknown) {
+            setCharLock(charName, field.key, true);
+        }
         renderSidebar();
     }));
     row.appendChild(valueBox);
@@ -186,12 +192,12 @@ function renderCard(charName) {
     head.appendChild(el('span', `fs-caret${collapsed ? '' : ' open'}`, '▸'));
     head.appendChild(el('span', 'fs-char-name', charName));
     const summary = el('span', 'fs-summary');
-    const moodField = template.fields.find(f => f.kind === 'chip');
-    if (moodField && charState.values[moodField.key]) {
+    const moodField = template.fields.find(f => f.kind === 'chip' && charState.values[f.key]);
+    if (moodField) {
         summary.appendChild(el('span', 'fs-chip mini', charState.values[moodField.key]));
     }
-    const barField = template.fields.find(f => f.kind === 'bar');
-    if (barField && charState.values[barField.key] !== undefined) {
+    const barField = template.fields.find(f => f.kind === 'bar' && charState.values[f.key] !== undefined);
+    if (barField) {
         summary.appendChild(el('span', 'fs-mini-val', `${barField.label} ${charState.values[barField.key]}`));
     }
     head.appendChild(summary);
@@ -203,8 +209,34 @@ function renderCard(charName) {
     card.appendChild(head);
     if (!collapsed) {
         const body = el('div', 'fs-card-body');
+        const showEmpty = !!getSettings().showEmptyFields;
+        let hidden = 0;
+        let rendered = 0;
         for (const field of template.fields) {
-            body.appendChild(renderRow(charName, field, charState.values[field.key], false));
+            const value = charState.values[field.key];
+            if (value === undefined) {
+                hidden += 1;
+                if (!showEmpty) {
+                    continue;
+                }
+                body.appendChild(renderRow(charName, field, emptyValue(field), false));
+            } else {
+                body.appendChild(renderRow(charName, field, value, false));
+            }
+            rendered += 1;
+        }
+        if (!rendered) {
+            body.appendChild(el('div', 'fs-empty-state', '暂无有值字段'));
+        }
+        if (hidden > 0) {
+            const btn = el('button', 'fs-empty-toggle', showEmpty ? '− 隐藏空字段' : `＋ 显示空字段 (${hidden})`);
+            btn.addEventListener('click', () => {
+                const s = getSettings();
+                s.showEmptyFields = !s.showEmptyFields;
+                saveSettings();
+                renderSidebar();
+            });
+            body.appendChild(btn);
         }
         const ignored = getSettings().ignoredKeys ?? [];
         const unknownKeys = Object.keys(charState.values).filter(k =>

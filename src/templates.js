@@ -20,6 +20,7 @@ export function defaultSettings() {
         hideBlocks: true,
         injection: 'interceptor',
         injectProtocol: true,
+        showEmptyFields: false,
         collapsedSections: [],
         templates: [DEFAULT_TEMPLATE],
         activeTemplateId: DEFAULT_TEMPLATE.id,
@@ -28,37 +29,50 @@ export function defaultSettings() {
 }
 
 const KIND_DESC = {
-    bar: f => `0-${f.max ?? 100} 整数`,
-    chip: () => '2-4 字短语',
-    text: () => '一句话',
+    bar: f => `0-${f.max ?? 100} 整数${f.note ? `，${f.note}` : ''}`,
+    chip: f => f.note || '2-4 字短语',
+    text: f => f.note || '一句话',
     tag: f => f.note ? `对象，${f.note}` : '对象，键=名称，值=0-100 整数',
     list: f => f.note ? `字符串数组，${f.note}` : '字符串数组',
-    check: () => 'true/false',
+    check: f => f.note || 'true/false',
 };
+
+function exampleValue(f) {
+    return f.sample !== undefined
+        ? f.sample
+        : (f.kind === 'tag' ? {} : f.kind === 'list' ? [] : f.kind === 'check' ? Boolean(f.default) : f.kind === 'bar' ? (f.default ?? 0) : (f.default ?? '示例'));
+}
+
+export function buildExampleJson(template, char = '{{char}}') {
+    const seenKinds = new Set();
+    const example = {};
+    for (const f of template.fields) {
+        if (!seenKinds.has(f.kind)) {
+            seenKinds.add(f.kind);
+            example[f.key] = exampleValue(f);
+        }
+    }
+    return JSON.stringify({ _char: char, ...example });
+}
 
 export function buildProtocolPrompt(template, { char = '{{char}}', withStateMacro = true, stateText } = {}) {
     const lines = template.fields.map(f =>
         `- "${f.key}"：${f.label}，${KIND_DESC[f.kind]?.(f) ?? ''}`,
     );
-    const example = {};
-    for (const f of template.fields) {
-        example[f.key] = f.sample !== undefined
-            ? f.sample
-            : (f.kind === 'tag' ? {} : f.kind === 'list' ? [] : f.kind === 'check' ? Boolean(f.default) : f.kind === 'bar' ? (f.default ?? 0) : (f.default ?? '示例'));
-    }
-    const exampleJson = JSON.stringify({ _char: char, ...example });
+    const exampleJson = buildExampleJson(template, char);
     const body = `【FreeStatus 状态协议】
-每条回复的最末尾必须输出一个 \`\`\`fs 代码块，内容只含一个 JSON 对象（不要解释、不要 markdown 说明），描述 ${char} 当前状态。全量快照，字段与键名如下，一个都不能少：
+每条回复的最末尾必须输出一个 \`\`\`fs 代码块，内容只含一个 JSON 对象（不要解释、不要 markdown 说明），描述 ${char} 当前状态。只输出当前有值的字段，字段与键名如下：
 
 ${lines.join('\n')}
 
 规则：
-1. 数值变化必须有正文情节依据；正文没体现的变化沿用下方「当前状态」里的值，禁止无故大幅变动。
-2. 输出示例（照此格式）：
+1. 只输出当前有值的字段：没有值、不适用或剧情未涉及的字段省略该键；上轮有值但本轮已无值的字段也必须省略该键（省略即清空）。
+2. 上轮已有值且本轮仍有值的字段必须继续输出，禁止无故丢弃；数值变化必须有正文情节依据，正文没体现的变化沿用下方「当前状态」里的值。
+3. 输出示例（仅示意格式与省略方式，实际键集合按当前有值字段而定）：
 \`\`\`fs
 ${exampleJson}
 \`\`\`
-3. 严格合法 JSON：双引号、无注释、无单引号、无尾逗号。`;
+4. 严格合法 JSON：双引号、无注释、无单引号、无尾逗号。`;
     if (stateText !== undefined) {
         return `${body}\n\n当前状态：\n${stateText}`;
     }
@@ -66,16 +80,6 @@ ${exampleJson}
         return `${body}\n\n当前状态：\n{{fs_state}}`;
     }
     return body;
-}
-
-export function buildExampleJson(template, char = '{{char}}') {
-    const example = {};
-    for (const f of template.fields) {
-        example[f.key] = f.sample !== undefined
-            ? f.sample
-            : (f.kind === 'tag' ? {} : f.kind === 'list' ? [] : f.kind === 'check' ? Boolean(f.default) : f.kind === 'bar' ? (f.default ?? 0) : (f.default ?? '示例'));
-    }
-    return JSON.stringify({ _char: char, ...example });
 }
 
 export function getTemplate(settings, templateId) {

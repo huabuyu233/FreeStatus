@@ -15,7 +15,7 @@ FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由
 
 已验证：
 
-- 22 个单测通过（`pnpm vitest run`），ESLint 干净（`pnpm eslint .`）
+- 24 个单测通过（`pnpm vitest run`），ESLint 干净（`pnpm eslint .`）
 - 本地 ST 与云酒馆均能加载扩展，侧栏与设置面板挂载成功
 - 端到端解析渲染已人工验证（云酒馆实测：AI 在回复末尾输出 ` ```fs ` 块后，侧栏出现角色卡片，各字段渲染正确）
 - 修复了云酒馆「找不到 settings.html」：模板路径不再写死目录名，改用 `import.meta.url`
@@ -60,6 +60,7 @@ FreeStatus/
   sidebarOpen: true,
   hideBlocks: true,                       // 隐藏消息里的原始 ```fs 块
   injection: 'interceptor' | 'macro' | 'off',
+  showEmptyFields: false,                 // 卡片底部「显示空字段」开关（展开无值字段行手动赋值）
   templates: [Template],
   activeTemplateId: 'default',
   ignoredKeys: []                         // 用户选择忽略的未知键
@@ -91,7 +92,8 @@ Template 结构：
 
 ## 5. AI 协议摘要
 
-- AI 在回复最末尾输出一个 ` ```fs ` 代码块，内容是单个 JSON 对象，全量快照。
+- AI 在回复最末尾输出一个 ` ```fs ` 代码块，内容是单个 JSON 对象，有值快照：只输出当前有值的键，省略即清空（`mergeState` 替换语义，未出现的键从状态移除，锁定字段从上一轮保留）。
+- 状态栏只渲染 values 里存在的字段；无值字段默认隐藏，卡片底部「显示空字段」开关可展开补值；手动改过的字段自动锁定。
 - `_` 前缀键是元数据，`_char` 表示状态归属角色，不渲染。
 - 解析器取最后一个块，`JSON.parse` 失败即丢弃本次、沿用旧值。
 - 完整规范、可粘贴的世界书条目、隐藏正则、失败 FAQ 见 `docs/protocol.md`。
@@ -163,3 +165,4 @@ New-Item -ItemType Junction `
 - v1.0.1：interceptor 协议自动注入、解析器围栏误匹配修复、设置面板开关同步与注入预览
 - v1.0.2：设置面板分节折叠（小箭头收起/展开，状态记忆）
 - v1.1.0：内置模板改为通用模板，题材专用模板改由用户自建/导入；文档与测试同步
+- v1.2.0：协议改为有值快照（只输出有值字段，省略即清空，mergeState 替换语义）；状态栏隐藏无值字段，卡片底部「显示空字段」开关；手动改值自动锁定；字段 note 全面进协议提示词（chip/text/check 亦生效）；示例 JSON 改为每种 kind 取一个字段的稀疏版
