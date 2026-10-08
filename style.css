@@ -799,8 +799,8 @@
 .fs-milk-icon {
     display: inline-flex;
     position: relative;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     color: var(--fs-fx-color, var(--fs-accent));
     cursor: pointer;
 }
@@ -812,7 +812,9 @@
 }
 
 .fs-milk-nipple {
-    fill: #1c1f26;
+    fill: #f2eee6;
+    stroke: #1c1f26;
+    stroke-width: 0.6;
 }
 
 .fs-milk-idle {
@@ -833,15 +835,15 @@
 @keyframes fsFxSpray {
     0% { transform: translate(0, 0) scale(0.5, 0.5); opacity: 0; }
     20% { opacity: 1; }
-    100% { transform: translate(-3px, 14px) scale(0.6, 1.6); opacity: 0; }
+    100% { transform: translate(5px, 12px) scale(0.6, 1.6); opacity: 0; }
 }
 
 .fs-milk-spray::before,
 .fs-milk-spray::after {
     content: '';
     position: absolute;
-    left: 11px;
-    top: 13px;
+    left: 19px;
+    top: 16px;
     width: 3px;
     height: 6px;
     border-radius: 50% 50% 60% 60%;
@@ -852,7 +854,99 @@
 
 .fs-milk-spray::after {
     animation-delay: -0.9s;
-    left: 13px;
+    left: 21px;
+}
+
+/* --- uterus 容器图标 --- */
+.fs-uterus-icon {
+    display: inline-flex;
+    position: relative;
+    width: 28px;
+    height: 28px;
+    color: var(--fs-fx-color, var(--fs-accent));
+    cursor: pointer;
+}
+
+.fs-uterus-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.fs-uterus-shell {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+}
+
+.fs-uterus-tube {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    opacity: 0.8;
+}
+
+.fs-uterus-liquid {
+    fill: #f2eee6;
+    opacity: 0.25;
+    transition: y 0.6s ease, height 0.6s ease, opacity 0.4s ease;
+}
+
+/* 四态液位：空（几乎不可见）→ 半满 → 灌满（充盈脉动）→ 溢出（滴落） */
+.fs-uterus-empty .fs-uterus-liquid {
+    opacity: 0.06;
+    y: 17.6px;
+    height: 1.4px;
+}
+
+.fs-uterus-half .fs-uterus-liquid {
+    opacity: 0.3;
+    y: 15px;
+    height: 4px;
+}
+
+.fs-uterus-full .fs-uterus-liquid {
+    opacity: 0.42;
+    y: 11.5px;
+    height: 7.5px;
+}
+
+@keyframes fsUterusSlosh {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    50% { transform: translateY(-0.6px) scaleY(1.06); }
+}
+
+.fs-uterus-full .fs-uterus-liquid {
+    animation: fsUterusSlosh 2.2s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+
+.fs-uterus-overflow .fs-uterus-liquid {
+    opacity: 0.48;
+    y: 9.8px;
+    height: 9.2px;
+    animation: fsUterusSlosh 1.6s ease-in-out infinite;
+    transform-origin: center bottom;
+}
+
+@keyframes fsUterusDrip {
+    0% { transform: translateY(0) scaleY(0.6); opacity: 0; }
+    30% { opacity: 0.9; }
+    100% { transform: translateY(11px) scaleY(1.5); opacity: 0; }
+}
+
+.fs-uterus-overflow::after {
+    content: '';
+    position: absolute;
+    left: 12.5px;
+    bottom: 1px;
+    width: 3px;
+    height: 5px;
+    border-radius: 50% 50% 60% 60%;
+    background: #f2eee6;
+    opacity: 0;
+    animation: fsUterusDrip 2s ease-in infinite;
 }
 
 /* --- engorge 态-扩散（可单独调用） --- */

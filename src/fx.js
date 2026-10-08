@@ -26,6 +26,7 @@ export const FX = [
     { id: 'milk', label: '状态图标', kind: ['tag'], desc: '三态自动切换（见 iconState）' },
     { id: 'engorge', label: '态-扩散', kind: ['tag', 'bar'], desc: '膨胀脉动扩散，可单独调用' },
     { id: 'spray', label: '态-流出', kind: ['tag', 'bar'], desc: '出液粒子流，可单独调用' },
+    { id: 'uterus', label: '容器图标', kind: ['tag'], desc: '容器液位四态（见 liquidState）' },
     { id: 'gloss', label: '湿光', kind: ['bar', 'tag', 'text'], desc: '高光沿字形缓慢游走' },
     { id: 'flow', label: '缓淌', kind: ['bar', 'tag'], desc: '细流向下爬行 + 液滴坠落' },
 ];
@@ -62,16 +63,47 @@ export function iconState(field, value) {
 }
 
 /**
+ * 容器图标（uterus）液位四态判定
+ * @param {object} field 字段定义
+ * @param {*} value 当前值（tag 对象）
+ * @returns {'empty'|'half'|'full'|'overflow'} 液位状态
+ */
+export function liquidState(field, value) {
+    if (!value || typeof value !== 'object') {
+        return 'empty';
+    }
+    const entries = Object.entries(value);
+    if (!entries.length) {
+        return 'empty';
+    }
+    // 取第一个值文本判定
+    const text = String(entries[0][1] ?? '');
+    if (text.includes('溢') || text.includes('喷')) {
+        return 'overflow';
+    }
+    if (text.includes('半') || text.includes('部分') || text.includes('少量')) {
+        return 'half';
+    }
+    if (text.includes('灌满') || text.includes('满')) {
+        return 'full';
+    }
+    if (text.includes('空') || text.includes('没有') || text.includes('排空')) {
+        return 'empty';
+    }
+    return 'half';
+}
+
+/**
  * 动效粒子配置（ui.js 注入用）
- * key: id -> 生成 4 个粒子的延迟步进（ms）
+ * key: id -> 生成 4 个粒子的延迟步进（ms）；0 表示无粒子
  */
 const PARTICLE_STEP = {
     hearts: 600, sparkle: 450, smoke: 700, zzz: 800,
     bubbles: 500, drip: 900, heat: 600, flow: 700,
-    milk: 600, engorge: 0, spray: 450,
+    milk: 0, engorge: 0, spray: 450,
     gloss: 0, sigil: 0, hypno: 0, sheen: 0,
     breathe: 0, shiver: 0, pulse: 0, sway: 0,
-    pop: 0, wave: 0, stars: 0,
+    pop: 0, wave: 0, stars: 900, uterus: 0,
 };
 
 /**
