@@ -4,10 +4,10 @@
 
 ## 1. 项目概览
 
-FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由模板声明，AI 在回复尾部输出一个 ` ```fs ` JSON 快照，扩展解析后存入聊天、在右侧卡片侧栏渲染、可选回注给 AI。内置一套通用模板；题材专用模板由用户在设置面板自建或导入，随实例保存，不随仓库分发。
+FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由模板声明，AI 在回复尾部输出一个 ` ```fs ` JSON 有值快照，扩展解析后存入聊天、在右侧卡片侧栏渲染、可选回注给 AI。内置一套通用模板；题材专用模板由用户在设置面板自建或导入，随实例保存，不随仓库分发；用户可在本地 `local-templates/`（已 gitignore）存放私有模板文件，用设置面板「导入 JSON」恢复，该目录不入库。
 
 - 仓库：`git@github.com:huabuyu233/FreeStatus.git`，分支 `master`
-- 当前 HEAD 与提交历史见第 11 节
+- 当前版本：v1.2.1；提交历史见第 11 节，近期工作记录见第 12 节
 - 部署实例：本地开发实例 `127.0.0.1:8000`；用户云酒馆 `silly.huabuyu.fun:57731`
 - 扩展形态：`manifest.json` + `index.js`（ES module），无构建步骤，运行时零依赖
 
@@ -17,36 +17,38 @@ FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由
 
 - 24 个单测通过（`pnpm vitest run`），ESLint 干净（`pnpm eslint .`）
 - 本地 ST 与云酒馆均能加载扩展，侧栏与设置面板挂载成功
-- 端到端解析渲染已人工验证（云酒馆实测：AI 在回复末尾输出 ` ```fs ` 块后，侧栏出现角色卡片，各字段渲染正确）
+- 端到端解析渲染已人工验证（云酒馆实测：AI 在回复末尾输出 ` ```fs ` 块后，侧栏出现角色卡片，各字段渲染正确，用户确认）
 - 修复了云酒馆「找不到 settings.html」：模板路径不再写死目录名，改用 `import.meta.url`
 - 修复了 AI 不知道协议的问题：v1.0.1 起 interceptor 每轮自动注入协议规则与当前状态（旧版只在已有状态时注入，鸡生蛋问题）
 
 尚未实测（下一步重点）：
 
-- 回注链路（v1.0.1 的 interceptor 协议自动注入，需云端更新扩展后实测）
-- 点值即改、隐藏原始块、锁定的完整交互
+- v1.2.0 有值快照链路的浏览器实测：空值字段隐藏、卡片底部「显示空字段」开关、手改值自动锁定
+- v1.2.1 侧栏视觉改动的实测：默认收起、小球展开动画、透明面板（需云端更新扩展后强刷）
 - 群聊多角色（代码按消息 `name` 与 `_char` 分角色，未跑过）
 - 随卡存储（`writeExtensionField` 写角色卡、从卡载入）
-- 设置面板分节折叠（v1.0.2，小箭头点击收起/展开，状态存 `collapsedSections`）未在浏览器复看
+- 设置面板布局复看（按钮换行、字段行输入框宽度已改 CSS，未复看效果）
 
 ## 3. 目录结构与职责
 
 ```
 FreeStatus/
-├── manifest.json         扩展清单：display_name / js / css / generate_interceptor
+├── manifest.json         扩展清单：display_name / js / css / generate_interceptor / version
 ├── index.js              入口：初始化、事件挂钩、interceptor 全局函数、宏注册、设置面板挂载
 ├── settings.html         设置面板静态骨架（无模板变量，纯静态 HTML）
 ├── style.css             侧栏卡片与设置面板样式（含移动端）
 ├── src/
 │   ├── parser.js         纯函数：```fs 解析、类型推断、值钳制、合并（可单测）
-│   ├── templates.js      内置通用模板、默认设置、协议提示词与示例生成
+│   ├── templates.js      内置通用模板、默认设置、协议提示词与稀疏示例生成
 │   ├── state.js          存储读写：设置 / 每聊状态 / 角色卡
-│   ├── prompt.js         紧凑状态串生成（用于回注与宏）
-│   ├── ui.js             侧栏卡片渲染、点值即改、锁定、未知键收编/忽略、隐藏原始块
+│   ├── prompt.js         紧凑状态串生成（用于回注与宏，跳过空值字段）
+│   ├── ui.js             侧栏卡片渲染、空值隐藏、显示空字段开关、点值即改、手改自动锁定、隐藏原始块
 │   └── settings.js       设置面板逻辑：模板选择/编辑、字段表、导入导出、协议复制、诊断
-├── tests/parser.test.js  解析器单测
+├── tests/parser.test.js  解析器单测（parse/coerce/mergeState）
+├── tests/templates.test.js  协议提示词与默认设置单测
 ├── eslint.config.js      ESLint 扁平配置（含浏览器全局声明）
 ├── docs/                 设计、协议、范围、本交接文档
+├── local-templates/      用户本地私有模板（gitignore，不入库）
 └── package.json          pnpm 开发工具链（eslint / prettier / vitest）
 ```
 
@@ -57,13 +59,15 @@ FreeStatus/
 ```
 {
   enabled: true,
-  sidebarOpen: true,
-  hideBlocks: true,                       // 隐藏消息里的原始 ```fs 块
+  sidebarOpen: false,                      // 侧栏默认收起，点 FS 小球展开（v1.2.1 改默认值，已存设置不受影响）
+  hideBlocks: true,                        // 隐藏消息里的原始 ```fs 块
   injection: 'interceptor' | 'macro' | 'off',
-  showEmptyFields: false,                 // 卡片底部「显示空字段」开关（展开无值字段行手动赋值）
+  injectProtocol: true,                    // 自动注入协议规则开关
+  showEmptyFields: false,                  // 卡片底部「显示空字段」开关（展开无值字段行手动赋值）
+  collapsedSections: [],                   // 设置面板分节折叠记忆
   templates: [Template],
   activeTemplateId: 'default',
-  ignoredKeys: []                         // 用户选择忽略的未知键
+  ignoredKeys: []                          // 用户选择忽略的未知键
 }
 ```
 
@@ -88,12 +92,13 @@ Template 结构：
 ] }
 ```
 
-`kind` 取值：`bar`（数值条）/ `chip`（短语）/ `text`（长文本）/ `tag`（键值字典）/ `list`（字符串数组）/ `check`（布尔）。
+`kind` 取值：`bar`（数值条）/ `chip`（短语）/ `text`（长文本）/ `tag`（键值字典）/ `list`（字符串数组）/ `check`（布尔）。`note` 会进协议提示词（全部 6 种 kind 均支持，chip/text/check 的 note 替代默认描述）；`sample` 用于生成稀疏示例。
 
 ## 5. AI 协议摘要
 
 - AI 在回复最末尾输出一个 ` ```fs ` 代码块，内容是单个 JSON 对象，有值快照：只输出当前有值的键，省略即清空（`mergeState` 替换语义，未出现的键从状态移除，锁定字段从上一轮保留）。
-- 状态栏只渲染 values 里存在的字段；无值字段默认隐藏，卡片底部「显示空字段」开关可展开补值；手动改过的字段自动锁定。
+- 状态栏只渲染 values 里存在的字段；无值字段默认隐藏，卡片底部「显示空字段」开关可展开补值；手动改过的字段自动锁定（点 🔒 解锁后交还 AI 控制）。
+- 协议提示词含字段清单、稀疏示例（每种 kind 取一个字段）、规则 1「只输出有值字段」、规则 2「有值字段必须续传」。
 - `_` 前缀键是元数据，`_char` 表示状态归属角色，不渲染。
 - 解析器取最后一个块，`JSON.parse` 失败即丢弃本次、沿用旧值。
 - 完整规范、可粘贴的世界书条目、隐藏正则、失败 FAQ 见 `docs/protocol.md`。
@@ -143,6 +148,8 @@ New-Item -ItemType Junction `
 
 - 目录名依赖（已修）：`renderExtensionTemplateAsync` 需要 `third-party/<仓库名>`，仓库名恰好是 `FreeStatus` 而代码曾写死 `freestatus`，导致云端报「找不到 settings.html」。现改用 `new URL('./settings.html', import.meta.url)`，装到任何目录名都可用。
 - 默认模板变更（v1.1.0）：内置模板换成通用模板，仓库只带这一套。已保存过设置的实例保留其现有模板；从未保存设置的实例更新后会看到通用模板，旧状态值归入卡片「其他」分组。恢复自定义模板用设置面板的「导入 JSON」。
+- 侧栏新默认是收起（v1.2.1），但 `sidebarOpen` 属于已存设置，老实例首次仍按之前保存的值显示，点一次小球即可切换并记住。
+- 手改值自动锁定（v1.2.0）：手动编辑会置 🔒，AI 不再更新该字段，需手动解锁交还控制，属设计行为，向用户解释时注意。
 - 云上扩展名显示 undefined：云端缓存的旧清单，重装/更新 + 强刷应恢复。若仍为 undefined，需排查云端 ST 版本与清单读取差异。
 - 隐藏原始块实现方式：用 DOM 隐藏（`ui.js` 的 `hideStatusBlocks` / `hideAllStatusBlocks`），未接入 ST 正则扩展的自动注册。`docs/protocol.md` 保留了手动正则方案作为备选。
 - 浏览器自动化冒烟不可用：Tabbit CLI 注册失效（需重启 Tabbit Browser）；Chrome 未安装，`browser-cdp` 的 CDP 方案也不可用。云端/本地视觉验证目前靠人工。
@@ -150,7 +157,7 @@ New-Item -ItemType Junction `
 
 ## 10. 下一步待办
 
-1. 回注链路实测：云端更新扩展后直接生成，确认 AI 自动在末尾输出 ` ```fs ` 块（协议注入生效）。
+1. 云端更新扩展到 v1.2.1 后人工实测：有值快照（空值隐藏、显示空字段开关、手改自动锁定）+ 侧栏视觉（默认收起、小球展开动画、透明面板）。
 2. 群聊多角色实测，确认 `_char` 与消息 `name` 的分派。
 3. 随卡存储实测，处理群聊 `characterId` 为 undefined 的边界。
 4. 复看设置面板布局（按钮换行、字段行输入框宽度已改 CSS，未复看效果）。
@@ -159,11 +166,23 @@ New-Item -ItemType Junction `
 
 ## 11. 提交历史
 
-历史已于 v1.1.0 重写为单个初始提交，此前含旧内置预设的提交已从 master 移除。版本演进记录：
+历史已于 v1.1.0 重写为单个初始提交 `7fb9f06`，此前含旧内置预设的提交已从 master 移除；之后按正常演进：`1ddf906`（文档措辞清理）→ `f28b301`（v1.2.0）→ `ce1462b`（v1.2.1）。版本演进记录：
 
 - v1.0.0 首个版本：模板编辑、解析、卡片侧栏、点值即改、回注双轨
 - v1.0.1：interceptor 协议自动注入、解析器围栏误匹配修复、设置面板开关同步与注入预览
 - v1.0.2：设置面板分节折叠（小箭头收起/展开，状态记忆）
-- v1.1.0：内置模板改为通用模板，题材专用模板改由用户自建/导入；文档与测试同步
+- v1.1.0：内置模板改为通用模板，题材专用模板改由用户自建/导入；文档与测试同步；仓库历史重写
 - v1.2.0：协议改为有值快照（只输出有值字段，省略即清空，mergeState 替换语义）；状态栏隐藏无值字段，卡片底部「显示空字段」开关；手动改值自动锁定；字段 note 全面进协议提示词（chip/text/check 亦生效）；示例 JSON 改为每种 kind 取一个字段的稀疏版
 - v1.2.1：侧栏默认收起，点击 FS 小球展开（滑入+淡入动画），小球开启态高亮；面板背景改为全透明、卡片悬浮显示；移动端抽屉同效
+
+## 12. 近期工作记录
+
+按时间顺序（版本详情见第 11 节）：
+
+- 文档与代码首版：README / design / protocol / roadmap 四份文档 + 本交接文档；扩展代码（manifest、index.js、src 六模块、settings.html、style.css），22 个单测 + ESLint 打底。
+- 云端端到端联调：修 settings.html 路径（`import.meta.url`）、加 interceptor 协议自动注入（解决鸡生蛋问题），用户实测 AI 输出状态块 → 侧栏卡片渲染成功。
+- 题材模板出库（v1.1.0）：内置模板只留通用模板，README/文档/测试同步改为通用叙事，仓库历史重写为单个干净提交。
+- 文档措辞清理：删除 roadmap/README/design/handoff 里交付节奏类的元注释；行文规范固化（中文、不用破折号叙述腔、不用「不是…而是…」句式、不用流程元注释，提交信息保持中性）。
+- 有值快照改造（v1.2.0）：协议从「全量快照、一个都不能少」改为「只输出有值字段、省略即清空」；`mergeState` 改替换语义（锁定字段跨快照保留）；状态栏只渲染有值字段，卡头摘要取第一个有值的 chip/bar；卡片底部「显示空字段 (N)」开关（`showEmptyFields`）；手动改值自动锁定；字段 `note` 进全部 6 种 kind 的协议行；协议示例 JSON 稀疏化（每种 kind 取一个字段）；回注状态串跳过空值；测试 22 → 24；五份文档同步。
+- 侧栏视觉重构（v1.2.1）：默认收起，点 FS 小球滑入 + 淡入展开（transform/opacity/visibility 过渡，收起后隐藏交互），小球开启态红底高亮、悬停放大、带阴影；面板去不透明背景与边框，卡片悬浮正文；移动端底部抽屉同效。
+- 用户本地私有模板迭代：私有模板文件维护在 `local-templates/`（gitignore），当前版本 28 字段、覆盖全部 6 种 kind；恢复方式为设置面板「导入 JSON」→ 选中模板。该目录内容不入库、不在仓库文档出现。
