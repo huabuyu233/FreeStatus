@@ -6,6 +6,15 @@
         <div class="fs-section-body">
             <label class="checkbox_label"><input type="checkbox" id="fs_enabled" checked> 启用插件</label>
             <label class="checkbox_label"><input type="checkbox" id="fs_hide_blocks" checked> 隐藏消息中的原始状态块</label>
+            <label class="checkbox_label"><input type="checkbox" id="fs_animations" checked> 小动画（字段动效，需模板字段配置 fx）</label>
+        </div>
+    </div>
+
+    <div class="freestatus_settings_section" data-section="fx">
+        <div class="fs-section-head"><span class="fs-caret">▸</span>动效对照表</div>
+        <div class="fs-section-body">
+            <div class="fs-fx-table-note">字段配置 <code>"fx": "id"</code> 调用内置动画；未知 id 无效果。</div>
+            <div id="fs_fx_table"></div>
         </div>
     </div>
 

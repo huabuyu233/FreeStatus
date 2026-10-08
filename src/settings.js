@@ -3,6 +3,7 @@ import { getSettings, saveSettings, getActiveTemplate, getChatState, saveChatSta
 import { buildProtocolPrompt } from './templates.js';
 import { buildInjectionText } from './prompt.js';
 import { renderSidebar } from './ui.js';
+import { FX } from './fx.js';
 
 export let failCount = 0;
 
@@ -75,6 +76,31 @@ function renderFieldTable() {
             field.kind = kind.value;
             saveSettings();
         });
+        const fx = document.createElement('select');
+        fx.className = 'fs-fx-select';
+        const fxNone = document.createElement('option');
+        fxNone.value = '';
+        fxNone.textContent = '无动效';
+        fx.appendChild(fxNone);
+        for (const f of FX) {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = `${f.id} · ${f.label}`;
+            if (f.id === field.fx) {
+                opt.selected = true;
+            }
+            fx.appendChild(opt);
+        }
+        fx.title = '动效（fx id）';
+        fx.addEventListener('change', () => {
+            if (fx.value) {
+                field.fx = fx.value;
+            } else {
+                delete field.fx;
+            }
+            saveSettings();
+            renderSidebar();
+        });
         const max = document.createElement('input');
         max.type = 'number';
         max.value = field.max ?? 100;
@@ -113,7 +139,7 @@ function renderFieldTable() {
                 renderSidebar();
             }
         });
-        row.append(key, label, kind, max, inject, up, del);
+        row.append(key, label, kind, max, inject, fx, up, del);
         table.appendChild(row);
     }
 }
@@ -171,11 +197,35 @@ function bindSectionToggles() {
     }
 }
 
+function renderFxTable() {
+    const box = $('#fs_fx_table');
+    if (!box) {
+        return;
+    }
+    box.innerHTML = '';
+    for (const f of FX) {
+        const row = document.createElement('div');
+        row.className = 'fs-fx-row';
+        const id = document.createElement('code');
+        id.textContent = f.id;
+        id.className = 'fs-fx-id';
+        const label = document.createElement('span');
+        label.textContent = f.label;
+        label.className = 'fs-fx-label';
+        const desc = document.createElement('span');
+        desc.textContent = f.desc;
+        desc.className = 'fs-fx-desc';
+        row.append(id, label, desc);
+        box.appendChild(row);
+    }
+}
+
 export function bindSettingsPanel() {
     renderTemplateSelect();
     renderFieldTable();
     refreshPreviews();
     bindSectionToggles();
+    renderFxTable();
 
     const settings = getSettings();
     const enabledBox = $('#fs_enabled');
@@ -192,6 +242,15 @@ export function bindSettingsPanel() {
         hideBox.addEventListener('change', e => {
             getSettings().hideBlocks = e.target.checked;
             saveSettings();
+        });
+    }
+    const animBox = $('#fs_animations');
+    if (animBox) {
+        animBox.checked = settings.animations !== false;
+        animBox.addEventListener('change', e => {
+            getSettings().animations = e.target.checked;
+            saveSettings();
+            renderSidebar();
         });
     }
     const protocolBox = $('#fs_inject_protocol');

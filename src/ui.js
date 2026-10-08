@@ -1,8 +1,10 @@
 import { coerceValue, emptyValue, inferKind } from './parser.js';
 import { getActiveTemplate, getSettings, getChatState, getCharState, setCharLock, updateCharValues, saveChatState, saveSettings } from './state.js';
+import { FX_IDS, iconState, particleStep } from './fx.js';
 
 let rootEl = null;
 let toggleEl = null;
+let lastRenderedValues = new Map(); // charName -> JSON.stringify(values)
 
 function el(tag, cls, text) {
     const node = document.createElement(tag);
@@ -15,8 +17,51 @@ function el(tag, cls, text) {
     return node;
 }
 
-function renderValueNode(field, value, onChange) {
+/** 注入粒子层（4 个 <i>，交错延迟） */
+function injectParticles(container, id) {
+    const step = particleStep(id);
+    if (!step) {
+        return;
+    }
+    const layer = el('span', 'fs-fx-particles');
+    for (let i = 0; i < 4; i++) {
+        const p = el('i');
+        p.style.animationDelay = `${-i * step}ms`;
+        layer.appendChild(p);
+    }
+    container.appendChild(layer);
+}
+
+/** 值变化时的一次性反馈类 */
+function markChanged(box, charName, fieldKey) {
+    const last = lastRenderedValues.get(charName);
+    if (!last) {
+        return; // 首次渲染不闪
+    }
+    const prev = JSON.parse(last)[fieldKey];
+    const curr = getCharState(charName).values[fieldKey];
+    if (JSON.stringify(prev) !== JSON.stringify(curr)) {
+        box.classList.add('fs-changed');
+    }
+}
+
+function renderValueNode(field, value, onChange, fxId) {
     const kind = field.kind;
+
+    // milk 状态图标：值不显示文字，只显示图标 + 三态动画（优先于 kind 分支）
+    if (fxId === 'milk') {
+        const iconWrap = el('div', 'fs-milk-icon');
+        iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" class="fs-milk-svg">
+            <path d="M4 16c0-5 3.5-9 8-9s8 4 8 9c-2.5 2-5.5 3-8 3s-5.5-1-8-3z" />
+            <circle class="fs-milk-nipple" cx="12" cy="12.2" r="1.4" />
+        </svg>`;
+        iconWrap.title = Object.entries(value && typeof value === 'object' ? value : {}).map(([k, v]) => `${k}:${v}`).join(', ') || '无';
+        const state = iconState(field, value);
+        iconWrap.classList.add(`fs-milk-${state}`);
+        iconWrap.addEventListener('click', () => editTag(value && typeof value === 'object' ? value : {}, onChange));
+        return iconWrap;
+    }
+
     if (kind === 'bar') {
         const wrap = el('div', 'fs-bar');
         const fill = el('div', 'fs-bar-fill');
@@ -126,8 +171,12 @@ function renderRow(charName, field, value, isUnknown) {
     const label = el('div', 'fs-row-label', field.label);
     row.appendChild(label);
     const valueBox = el('div', 'fs-row-value');
+    const settings = getSettings();
+    const fxId = !isUnknown && settings.animations !== false && field.fx && FX_IDS.has(field.fx)
+        ? field.fx
+        : null;
     const effective = isUnknown ? { kind: inferKind(value), min: 0, max: 100 } : field;
-    valueBox.appendChild(renderValueNode(effective, value, (next, revert) => {
+    const node = renderValueNode(effective, value, (next, revert) => {
         const values = { ...getCharState(charName).values };
         if (revert) {
             renderSidebar();
@@ -139,7 +188,14 @@ function renderRow(charName, field, value, isUnknown) {
             setCharLock(charName, field.key, true);
         }
         renderSidebar();
-    }));
+    }, fxId);
+    valueBox.appendChild(node);
+    if (fxId) {
+        valueBox.classList.add('fs-fx', `fs-fx-${fxId}`);
+        valueBox.style.setProperty('--fs-fx-color', field.color || 'var(--fs-accent)');
+        injectParticles(valueBox, fxId);
+        markChanged(valueBox, charName, field.key);
+    }
     row.appendChild(valueBox);
     if (!isUnknown) {
         const lockBtn = el('button', `fs-lock${charState.locks[field.key] ? ' on' : ''}`, '🔒');
@@ -262,10 +318,12 @@ export function renderSidebar() {
     const names = Object.keys(chatState.chars);
     if (!names.length) {
         rootEl.appendChild(el('div', 'fs-empty-state', '等待第一条状态输出'));
+        lastRenderedValues.clear();
         return;
     }
     for (const name of names) {
         rootEl.appendChild(renderCard(name));
+        lastRenderedValues.set(name, JSON.stringify(getCharState(name).values));
     }
 }
 
