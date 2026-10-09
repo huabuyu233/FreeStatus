@@ -34,16 +34,17 @@ function fieldRatio(field, value) {
 const SPARKLE_TOPS = [8, 46, 12, 60, 28, 54, 4, 34, 50, 18, 40, 24];
 
 /** 注入粒子层：有强度配置的动效按比例决定数量与速度，其余固定 4 个 */
-function injectParticles(container, id, ratio = 0.5) {
+function injectParticles(container, id, ratio = 0.5, spread = 1) {
     const layer = el('span', 'fs-fx-particles');
     const conf = fxIntensity(id);
     if (conf) {
         const count = Math.max(1, Math.round(conf.min + (conf.max - conf.min) * ratio));
         const dur = conf.dur[0] + (conf.dur[1] - conf.dur[0]) * ratio;
         const step = (dur * 1000) / count;
+        const span = Math.min(1, Math.max(0, spread)) * 100;
         for (let i = 0; i < count; i++) {
             const p = el('i');
-            const left = count === 1 ? 50 : 8 + (84 * i) / (count - 1);
+            const left = count === 1 ? span / 2 : span * ((i + 0.5) / count);
             p.style.left = `${left.toFixed(1)}%`;
             p.style.animationDuration = `${dur.toFixed(2)}s`;
             if (id === 'sparkle') {
@@ -214,7 +215,8 @@ function renderRow(charName, field, value, isUnknown) {
     if (fxId) {
         valueBox.classList.add('fs-fx', `fs-fx-${fxId}`);
         valueBox.style.setProperty('--fs-fx-color', field.color || 'var(--fs-accent)');
-        injectParticles(valueBox, fxId, fieldRatio(effective, value));
+        const fxRatio = fieldRatio(effective, value);
+        injectParticles(valueBox, fxId, fxRatio, effective.kind === 'bar' ? fxRatio : 1);
         markChanged(valueBox, charName, field.key);
     }
     row.appendChild(valueBox);

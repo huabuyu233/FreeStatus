@@ -192,7 +192,7 @@ CHARACTER_MESSAGE_RENDERED ──► 隐藏原始 ```fs 块             │
 ### 9.2 播放规则
 
 - 氛围类粒子常驻（慢速低密度），值变化时叠加一次性 `fs-changed` 闪光+弹跳（首次渲染不闪，模块级快照对比）。
-- 密度随数值变化：`hearts`（爱心）与 `sparkle`（星光）的粒子数量与速度按字段数值比例（bar 的 min→max 映射到 0→1）增强，值低时仅一两颗、值高时密集涌现；`ui.js` 的 `fieldRatio()` 取值，`fxIntensity()` 提供数量与周期范围。
+- 密度随数值变化：`hearts`（爱心）与 `sparkle`（星光）的粒子数量与速度按字段数值比例（bar 的 min→max 映射到 0→1）增强，值低时仅一两颗、值高时密集涌现；数值条上的粒子沿已填充部分分布（低值只占条的左侧一小段，高值铺满整条）；`ui.js` 的 `fieldRatio()` 取值、`fxIntensity()` 提供数量与周期范围。
 - 设置面板「通用」有「小动画」总开关（`animations`，默认开），关闭后所有动效不挂载。
 - 侧栏收起时所有动效 `animation-play-state: paused`。
 - `@media (prefers-reduced-motion: reduce)` 下全部动画关闭、粒子隐藏。
