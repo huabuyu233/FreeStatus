@@ -219,16 +219,16 @@ function renderRow(charName, field, value, isUnknown) {
         : null;
     const effective = isUnknown ? { kind: inferKind(value), min: 0, max: 100 } : field;
     const fxRatio = fieldRatio(effective, value);
+    const marker = el('span', 'fs-fx-marker');
     if (fxId && effective.kind === 'bar' && fxIntensity(fxId)) {
         const color = field.color || 'var(--fs-accent)';
-        const marker = el('span', 'fs-fx-marker fs-fx');
-        marker.classList.add(`fs-fx-${fxId}`);
+        marker.classList.add('fs-fx', `fs-fx-${fxId}`);
         marker.style.color = color;
         marker.style.setProperty('--fs-fx-color', color);
         marker.appendChild(el('span', 'fs-marker-glyph', fxGlyph(fxId)));
         injectPrefixParticles(marker, fxId, fxRatio);
-        row.appendChild(marker);
     }
+    row.appendChild(marker);
     const label = el('div', 'fs-row-label', field.label);
     row.appendChild(label);
     const valueBox = el('div', 'fs-row-value');
