@@ -441,10 +441,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 14px;
+    min-width: 12px;
     flex-shrink: 0;
     font-size: 11px;
     line-height: 1;
+    letter-spacing: -1px;
     transform-origin: center;
 }
 

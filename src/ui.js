@@ -1,6 +1,6 @@
 import { coerceValue, emptyValue, inferKind } from './parser.js';
 import { getActiveTemplate, getSettings, getChatState, getCharState, setCharLock, updateCharValues, saveChatState, saveSettings } from './state.js';
-import { FX_IDS, fxGlyph, fxIntensity, particleStep } from './fx.js';
+import { FX_IDS, fxGlyph, fxIntensity, fxPrefix, particleStep } from './fx.js';
 
 let rootEl = null;
 let toggleEl = null;
@@ -33,13 +33,30 @@ function fieldRatio(field, value) {
 
 const SPARKLE_TOPS = [8, 46, 12, 60, 28, 54, 4, 34, 50, 18, 40, 24];
 
-/** 注入粒子层：有强度配置的动效按比例决定数量与速度，其余固定 4 个 */
-function injectParticles(container, id, ratio = 0.5, spread = 1) {
+/** 前缀标记数量：爱心/星光随数值（0~1）由少到多 */
+function fxPrefixCount(id, ratio) {
+    const p = fxPrefix(id);
+    return Math.max(1, Math.round(p.min + (p.max - p.min) * ratio));
+}
+
+/**
+ * 注入粒子层
+ * @param {number} ratio 强度 0~1（数值条已填充比例）
+ * @param {number} spread 分布区间 0~1（粒子只落在该宽度内）
+ * @param {number} fixedCount 固定粒子数（>0 时忽略强度数量，用于数值条）
+ */
+function injectParticles(container, id, ratio = 0.5, spread = 1, fixedCount = 0) {
     const layer = el('span', 'fs-fx-particles');
     const conf = fxIntensity(id);
-    if (conf) {
-        const count = Math.max(1, Math.round(conf.min + (conf.max - conf.min) * ratio));
-        const dur = conf.dur[0] + (conf.dur[1] - conf.dur[0]) * ratio;
+    if (conf || fixedCount > 0) {
+        let count, dur;
+        if (fixedCount > 0) {
+            count = fixedCount;
+            dur = 2;
+        } else {
+            count = Math.max(1, Math.round(conf.min + (conf.max - conf.min) * ratio));
+            dur = conf.dur[0] + (conf.dur[1] - conf.dur[0]) * ratio;
+        }
         const step = (dur * 1000) / count;
         const span = Math.min(1, Math.max(0, spread)) * 100;
         for (let i = 0; i < count; i++) {
@@ -195,8 +212,10 @@ function renderRow(charName, field, value, isUnknown) {
         ? field.fx
         : null;
     const effective = isUnknown ? { kind: inferKind(value), min: 0, max: 100 } : field;
+    const fxRatio = fieldRatio(effective, value);
     if (fxId) {
-        const marker = el('span', `fs-fx-marker fs-marker-${fxId}`, fxGlyph(fxId));
+        const glyph = fxGlyph(fxId).repeat(fxPrefixCount(fxId, fxRatio));
+        const marker = el('span', `fs-fx-marker fs-marker-${fxId}`, glyph);
         marker.style.color = field.color || 'var(--fs-accent)';
         row.appendChild(marker);
     }
@@ -220,8 +239,11 @@ function renderRow(charName, field, value, isUnknown) {
     if (fxId) {
         valueBox.classList.add('fs-fx', `fs-fx-${fxId}`);
         valueBox.style.setProperty('--fs-fx-color', field.color || 'var(--fs-accent)');
-        const fxRatio = fieldRatio(effective, value);
-        injectParticles(valueBox, fxId, fxRatio, effective.kind === 'bar' ? fxRatio : 1);
+        if (effective.kind === 'bar') {
+            injectParticles(valueBox, fxId, fxRatio, fxRatio, 5);
+        } else {
+            injectParticles(valueBox, fxId, fxRatio);
+        }
         markChanged(valueBox, charName, field.key);
     }
     row.appendChild(valueBox);

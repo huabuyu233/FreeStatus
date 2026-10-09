@@ -23,6 +23,20 @@ export function fxGlyph(id) {
 }
 
 /**
+ * 前缀标记数量范围：爱心/星光的数量随数值变化（值越高，字段名前越多）
+ * 未配置的动效固定 1 个
+ */
+const PREFIX = {
+    hearts: { min: 1, max: 4 },
+    sparkle: { min: 1, max: 4 },
+};
+
+/** 取得动效前缀标记的数量范围 */
+export function fxPrefix(id) {
+    return PREFIX[id] ?? { min: 1, max: 1 };
+}
+
+/**
  * 强度配置：粒子数量与速度随数值（bar 的 0~1 比例）变化
  * min/max = 粒子数范围；dur = [慢, 快] 动画周期（秒）
  */

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FX, FX_IDS, fxGlyph, fxIntensity, particleStep } from '../src/fx.js';
+import { FX, FX_IDS, fxGlyph, fxIntensity, fxPrefix, particleStep } from '../src/fx.js';
 import { buildProtocolPrompt, DEFAULT_TEMPLATE } from '../src/templates.js';
 
 describe('fx registry', () => {
@@ -29,6 +29,12 @@ describe('fx registry', () => {
             expect(fxGlyph(f.id)).toBe(f.glyph);
         }
         expect(fxGlyph('nope')).toBe('•');
+    });
+
+    it('hearts/sparkle have a value-scaled prefix range', () => {
+        expect(fxPrefix('hearts').max).toBeGreaterThan(fxPrefix('hearts').min);
+        expect(fxPrefix('sparkle').max).toBeGreaterThan(1);
+        expect(fxPrefix('wave')).toEqual({ min: 1, max: 1 });
     });
 });
 
