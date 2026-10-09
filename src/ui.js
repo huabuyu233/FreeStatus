@@ -40,31 +40,40 @@ function fxPrefixCount(id, ratio) {
 }
 
 /**
- * 注入粒子层
+ * 数值条粒子层（只用于 bar）：粒子只落在数值条的已填充宽度内
  * @param {number} count 粒子数量
- * @param {number} spread 分布区间 0~1（粒子只落在该宽度内）
- * @param {number} dur 动画周期（秒），0 表示用 CSS 默认
+ * @param {number} spread 分布区间 0~1（= 数值条的填充比例）
+ * @param {number} dur 动画周期（秒）
  */
-function injectParticles(container, id, count, spread = 1, dur = 0) {
-    const fallback = particleStep(id);
-    if (!dur && !fallback) {
-        return;
-    }
+function injectBarParticles(container, id, count, spread, dur) {
     const layer = el('span', 'fs-fx-particles');
-    const n = Math.max(1, count || 4);
+    const n = Math.max(1, count);
     const span = Math.min(1, Math.max(0, spread)) * 100;
-    const step = dur ? (dur * 1000) / n : fallback;
+    const step = (dur * 1000) / n;
     for (let i = 0; i < n; i++) {
         const p = el('i');
         const left = n === 1 ? span / 2 : span * ((i + 0.5) / n);
         p.style.left = `${left.toFixed(1)}%`;
-        if (dur) {
-            p.style.animationDuration = `${dur.toFixed(2)}s`;
-        }
+        p.style.animationDuration = `${dur.toFixed(2)}s`;
         if (id === 'sparkle') {
             p.style.top = `${SPARKLE_TOPS[i % SPARKLE_TOPS.length]}%`;
         }
         p.style.animationDelay = `${(-i * step).toFixed(0)}ms`;
+        layer.appendChild(p);
+    }
+    container.appendChild(layer);
+}
+
+/** 锚定粒子层（check 的星环等）：位置由 CSS 决定，不铺满宽度 */
+function injectAnchoredParticles(container, id) {
+    const step = particleStep(id);
+    if (!step) {
+        return;
+    }
+    const layer = el('span', 'fs-fx-particles');
+    for (let i = 0; i < 4; i++) {
+        const p = el('i');
+        p.style.animationDelay = `${-i * step}ms`;
         layer.appendChild(p);
     }
     container.appendChild(layer);
@@ -250,9 +259,9 @@ function renderRow(charName, field, value, isUnknown) {
         valueBox.classList.add('fs-fx', `fs-fx-${fxId}`);
         valueBox.style.setProperty('--fs-fx-color', field.color || 'var(--fs-accent)');
         if (effective.kind === 'bar') {
-            injectParticles(valueBox, fxId, 5, fxRatio, 2);
-        } else {
-            injectParticles(valueBox, fxId, 4, 1, 0);
+            injectBarParticles(valueBox, fxId, 5, fxRatio, 2);
+        } else if (fxId === 'stars') {
+            injectAnchoredParticles(valueBox, fxId);
         }
         markChanged(valueBox, charName, field.key);
     }

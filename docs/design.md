@@ -187,13 +187,13 @@ CHARACTER_MESSAGE_RENDERED ──► 隐藏原始 ```fs 块             │
 
 模板字段新增可选属性 `fx`，值为内置动效 id（如 `"hearts"`）。fx 是纯渲染层属性：**不进协议提示词、不参与解析、不进注入文本**；未知 id 静默无效果；导出/导入模板 JSON 自带 fx。
 
-渲染时 `renderRow` 给 `.fs-row-value` 挂 `fs-fx fs-fx-{id}` 类并注入交错延迟的 `<i>` 粒子；`--fs-fx-color` 跟随字段 `color`（缺省主题色）。字段名前另加一个 `.fs-fx-marker` 标记，仅当字段为 `bar` 且动效为 `hearts`/`sparkle` 时出现：一个基准字形 + 沿前缀横向铺开、向上飘的粒子（其他字段类型不加前缀）。
+渲染时 `renderRow` 给 `.fs-row-value` 挂 `fs-fx fs-fx-{id}` 类以驱动该字段动画。粒子层只用于数值条（`bar`）：粒子落在已填充宽度内；非 bar 字段不做铺满整行的漂浮粒子动画，`shiver`/`sway`/`wave` 直接作用在值本身（文字抖动/徽章摆动/液面起伏），check 的 `stars` 是绕徽章的锚定粒子。字段名前另加 `.fs-fx-marker` 标记，仅当 `bar` + `hearts`/`sparkle` 时出现：基准字形 + 沿前缀横向铺开、向上飘的粒子。
 
 ### 9.2 播放规则
 
 - 氛围类粒子常驻（慢速低密度），值变化时叠加一次性 `fs-changed` 闪光+弹跳（首次渲染不闪，模块级快照对比）。
 - 前缀密度随数值：`bar` 字段配 `hearts`（爱心）或 `sparkle`（星光）时，字段名前缀是「向上飘」的粒子动画，粒子沿前缀横向铺开、数量与速度随数值增强（`fxPrefix()` 定数量范围、`fxIntensity()` 定周期），色欲值高时前缀持续密集冒爱心。
-- 数值条动画只落在已填充区间：bar 上的粒子沿数值条的填充宽度分布（`injectParticles()` 的 `spread` = 填充比例，固定数量），未填充部分没有动画；`fieldRatio()` 把 bar 的 min→max 映射为 0~1。
+- 数值条动画只落在已填充区间：bar 用固定数量的粒子沿数值条的填充宽度分布（`injectBarParticles()`，`spread` = 填充比例），未填充部分没有动画；非 bar 字段不铺满整行。
 - 设置面板「通用」有「小动画」总开关（`animations`，默认开），关闭后所有动效不挂载。
 - 侧栏收起时所有动效 `animation-play-state: paused`。
 - `@media (prefers-reduced-motion: reduce)` 下全部动画关闭、粒子隐藏。
