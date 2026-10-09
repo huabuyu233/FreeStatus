@@ -436,6 +436,61 @@
     animation: fsChangedFlash 0.8s ease-out;
 }
 
+/* --- 字段名前缀标记 --- */
+.fs-fx-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    flex-shrink: 0;
+    font-size: 11px;
+    line-height: 1;
+    transform-origin: center;
+}
+
+@keyframes fsMarkerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.35); }
+}
+
+.fs-marker-hearts { animation: fsMarkerPulse 1s ease-in-out infinite; }
+
+@keyframes fsMarkerTwinkle {
+    0%, 100% { opacity: 0.4; transform: scale(0.8) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.15) rotate(45deg); }
+}
+
+.fs-marker-sparkle { animation: fsMarkerTwinkle 1.6s ease-in-out infinite; }
+
+@keyframes fsMarkerShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-1px); }
+    75% { transform: translateX(1px); }
+}
+
+.fs-marker-shiver { animation: fsMarkerShake 0.4s linear infinite; }
+
+@keyframes fsMarkerSway {
+    0%, 100% { transform: rotate(-9deg); }
+    50% { transform: rotate(9deg); }
+}
+
+.fs-marker-sway { animation: fsMarkerSway 2s ease-in-out infinite; }
+
+@keyframes fsMarkerSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fs-marker-stars { animation: fsMarkerSpin 3s linear infinite; }
+
+@keyframes fsMarkerBob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+.fs-marker-wave { animation: fsMarkerBob 1.8s ease-in-out infinite; }
+
 /* --- hearts 爱心 --- */
 @keyframes fsFxHearts {
     0% { transform: translateY(0) scale(0.6) rotate(-6deg); opacity: 0; }
@@ -569,7 +624,8 @@
     .fs-fx,
     .fs-fx *,
     .fs-fx *::before,
-    .fs-fx *::after {
+    .fs-fx *::after,
+    .fs-fx-marker {
         animation: none !important;
     }
 

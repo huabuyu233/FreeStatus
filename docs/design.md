@@ -187,7 +187,7 @@ CHARACTER_MESSAGE_RENDERED ──► 隐藏原始 ```fs 块             │
 
 模板字段新增可选属性 `fx`，值为内置动效 id（如 `"hearts"`）。fx 是纯渲染层属性：**不进协议提示词、不参与解析、不进注入文本**；未知 id 静默无效果；导出/导入模板 JSON 自带 fx。
 
-渲染时 `renderRow` 给 `.fs-row-value` 挂 `fs-fx fs-fx-{id}` 类并注入交错延迟的 `<i>` 粒子；`--fs-fx-color` 跟随字段 `color`（缺省主题色）。
+渲染时 `renderRow` 给 `.fs-row-value` 挂 `fs-fx fs-fx-{id}` 类并注入交错延迟的 `<i>` 粒子；`--fs-fx-color` 跟随字段 `color`（缺省主题色）。字段名前另加一个 `.fs-fx-marker` 标记（字形取自注册表 `glyph`，如爱心 `♥`），带各自动效，让动画同时出现在字段名旁。
 
 ### 9.2 播放规则
 

@@ -7,7 +7,7 @@
 FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由模板声明，AI 在回复尾部输出一个 ` ```fs ` JSON 有值快照，扩展解析后存入聊天、在右侧卡片侧栏渲染、可选回注给 AI。内置一套通用模板；题材专用模板由用户在设置面板自建或导入，随实例保存，不随仓库分发；用户可在本地 `local-templates/`（已 gitignore）存放私有模板文件，用设置面板「导入 JSON」恢复，该目录不入库。
 
 - 仓库：`git@github.com:huabuyu233/FreeStatus.git`，分支 `master`
-- 当前版本：v1.3.5；提交历史见第 11 节，近期工作记录见第 12 节
+- 当前版本：v1.3.6；提交历史见第 11 节，近期工作记录见第 12 节
 - 部署实例：本地开发实例 `127.0.0.1:8000`；用户云酒馆 `silly.huabuyu.fun:57731`
 - 扩展形态：`manifest.json` + `index.js`（ES module），无构建步骤，运行时零依赖
 
@@ -181,6 +181,7 @@ New-Item -ItemType Junction `
 - v1.3.3：动效再度精简至 6 个。仅保留 `hearts`/`sparkle`/`shiver`/`sway`/`stars`/`wave`，删除其余 15 个（sigil/smoke/hypno/sheen/breathe/zzz/pulse/pop/bubbles/drip/heat/engorge/spray/gloss/flow）及对应 CSS；通用模板与私有预设的 fx 全部改指这 6 个。
 - v1.3.4：动效密度随数值变化。`hearts`/`sparkle` 的粒子数量与速度按字段数值比例缩放（bar 值低→一两颗、值高→密集涌现）；`ui.js` 新增 `fieldRatio()`、粒子改为按强度动态生成并内联定位与周期，`fx.js` 新增 `fxIntensity()` 强度配置；测试 32 → 34。
 - v1.3.5：数值条上的粒子沿已填充部分分布。bar 上的爱心/星光不再铺满整行，而是分布在数值条的填充区间（低值只在左侧一小段冒，高值铺满整条），强化「动画长在条上」的结构；`injectParticles()` 增 `spread` 参数。
+- v1.3.6：字段名前缀动画。字段配了 fx 时，在字段名左侧显示一个随动效变化的标记字形（`fx.js` 注册表加 `glyph` 与 `fxGlyph()`；`ui.js` 在 label 前插 `.fs-fx-marker`），如「♥ 色欲」；数值条上的粒子动画同时保留。测试 34 → 35。
 
 ## 12. 近期工作记录
 
@@ -199,3 +200,4 @@ New-Item -ItemType Junction `
 - 动效定稿（v1.3.3）：用户要求只保留 6 个动效，据此把 `src/fx.js` 注册表缩到 `hearts`/`sparkle`/`shiver`/`sway`/`stars`/`wave`，删除其余 15 条及 `style.css` 对应动画块（同步清理 `fsFxRipple`/`fsFxSpray` 等仅供已删 id 的关键帧）；通用模板与私有预设 28 字段的 fx 全部改指这 6 个；测试与文档同步。
 - 动画密度随数值（v1.3.4）：爱心/星光两类粒子动效的粒子数量与动画速度改为随字段数值比例变化（色欲等 bar 值低时只有一两颗爱心，值高时持续密集涌现）；`ui.js` 加 `fieldRatio()` 计算 0~1 强度、`injectParticles` 按强度动态生成粒子并内联设置位置与周期；`fx.js` 加 `fxIntensity()` 强度范围配置；design.md 与测试同步。同时清理了 Rive 评估期安装的 Rust / MinGW 工具链与临时包。
 - 条上动画结构（v1.3.5）：bar 上的粒子分布区间从整行收窄到数值条的已填充部分（`injectParticles` 增 `spread` 参数，bar 传 `fieldRatio`，其余传 1），使动画明确「长在数值条上」。
+- 字段名前缀动画（v1.3.6）：按用户要求，字段名左侧也加动画标记（如「♥ 色欲」），同时数值条上保留粒子动画；`fx.js` 每个动效加 `glyph` 并提供 `fxGlyph()`，`ui.js` 在 label 前插入 `.fs-fx-marker`，`style.css` 加各动效的标记动画（脉动/闪烁/抖动/摆动/旋转/起伏）。

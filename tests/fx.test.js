@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FX, FX_IDS, fxIntensity, particleStep } from '../src/fx.js';
+import { FX, FX_IDS, fxGlyph, fxIntensity, particleStep } from '../src/fx.js';
 import { buildProtocolPrompt, DEFAULT_TEMPLATE } from '../src/templates.js';
 
 describe('fx registry', () => {
@@ -21,6 +21,14 @@ describe('fx registry', () => {
             expect(f.desc).toBeTruthy();
             expect(Array.isArray(f.kind)).toBe(true);
         }
+    });
+
+    it('every fx has a glyph', () => {
+        for (const f of FX) {
+            expect(f.glyph).toBeTruthy();
+            expect(fxGlyph(f.id)).toBe(f.glyph);
+        }
+        expect(fxGlyph('nope')).toBe('•');
     });
 });
 

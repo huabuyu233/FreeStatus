@@ -1,6 +1,6 @@
 import { coerceValue, emptyValue, inferKind } from './parser.js';
 import { getActiveTemplate, getSettings, getChatState, getCharState, setCharLock, updateCharValues, saveChatState, saveSettings } from './state.js';
-import { FX_IDS, fxIntensity, particleStep } from './fx.js';
+import { FX_IDS, fxGlyph, fxIntensity, particleStep } from './fx.js';
 
 let rootEl = null;
 let toggleEl = null;
@@ -190,14 +190,19 @@ function renderRow(charName, field, value, isUnknown) {
     if (isUnknown) {
         row.classList.add('fs-unknown');
     }
-    const label = el('div', 'fs-row-label', field.label);
-    row.appendChild(label);
-    const valueBox = el('div', 'fs-row-value');
     const settings = getSettings();
     const fxId = !isUnknown && settings.animations !== false && field.fx && FX_IDS.has(field.fx)
         ? field.fx
         : null;
     const effective = isUnknown ? { kind: inferKind(value), min: 0, max: 100 } : field;
+    if (fxId) {
+        const marker = el('span', `fs-fx-marker fs-marker-${fxId}`, fxGlyph(fxId));
+        marker.style.color = field.color || 'var(--fs-accent)';
+        row.appendChild(marker);
+    }
+    const label = el('div', 'fs-row-label', field.label);
+    row.appendChild(label);
+    const valueBox = el('div', 'fs-row-value');
     const node = renderValueNode(effective, value, (next, revert) => {
         const values = { ...getCharState(charName).values };
         if (revert) {

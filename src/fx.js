@@ -6,16 +6,21 @@
  */
 
 export const FX = [
-    { id: 'hearts', label: '爱心', kind: ['bar', 'chip'], desc: '♥ 上升渐隐，数量随数值增多' },
-    { id: 'sparkle', label: '星光', kind: ['bar', 'tag', 'text'], desc: '✦✧ 交替闪烁，密度随数值增强' },
-    { id: 'shiver', label: '震颤', kind: ['text', 'chip', 'tag'], desc: 'x 轴微抖' },
-    { id: 'sway', label: '摇摆', kind: ['chip', 'list'], desc: '轻微旋转摆动' },
-    { id: 'stars', label: '星环', kind: ['check'], desc: '✦ 绕徽章环绕旋转' },
-    { id: 'wave', label: '波浪', kind: ['bar', 'tag', 'text'], desc: '液面正弦晃动' },
+    { id: 'hearts', label: '爱心', glyph: '♥', kind: ['bar', 'chip'], desc: '♥ 上升渐隐，数量随数值增多' },
+    { id: 'sparkle', label: '星光', glyph: '✦', kind: ['bar', 'tag', 'text'], desc: '✦✧ 交替闪烁，密度随数值增强' },
+    { id: 'shiver', label: '震颤', glyph: '~', kind: ['text', 'chip', 'tag'], desc: 'x 轴微抖' },
+    { id: 'sway', label: '摇摆', glyph: '↔', kind: ['chip', 'list'], desc: '轻微旋转摆动' },
+    { id: 'stars', label: '星环', glyph: '✧', kind: ['check'], desc: '✦ 绕徽章环绕旋转' },
+    { id: 'wave', label: '波浪', glyph: '≈', kind: ['bar', 'tag', 'text'], desc: '液面正弦晃动' },
 ];
 
 /** 动效 id 集合（查重 / 下拉生成用） */
 export const FX_IDS = new Set(FX.map(f => f.id));
+
+/** 取得动效的标记字形（用于字段名前缀），未知 id 返回圆点 */
+export function fxGlyph(id) {
+    return FX.find(f => f.id === id)?.glyph ?? '•';
+}
 
 /**
  * 强度配置：粒子数量与速度随数值（bar 的 0~1 比例）变化
