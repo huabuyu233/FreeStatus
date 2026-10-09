@@ -1,6 +1,6 @@
 import { coerceValue, emptyValue, inferKind } from './parser.js';
 import { getActiveTemplate, getSettings, getChatState, getCharState, setCharLock, updateCharValues, saveChatState, saveSettings } from './state.js';
-import { FX_IDS, iconState, liquidState, particleStep } from './fx.js';
+import { FX_IDS, particleStep } from './fx.js';
 
 let rootEl = null;
 let toggleEl = null;
@@ -45,40 +45,8 @@ function markChanged(box, charName, fieldKey) {
     }
 }
 
-function renderValueNode(field, value, onChange, fxId) {
+function renderValueNode(field, value, onChange) {
     const kind = field.kind;
-
-    // milk 状态图标：值不显示文字，只显示图标 + 三态动画（优先于 kind 分支）
-    if (fxId === 'milk') {
-        const iconWrap = el('div', 'fs-milk-icon');
-        // 侧面躯干剪影：肩颈→背线→腰胯为身体轮廓，胸前乳房弧线外凸，凸点在乳房末端
-        iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" class="fs-milk-svg">
-            <path d="M4 2.5 C5.5 2.2 6.8 2.4 7.6 3.2 C8 3.6 8.2 4.2 8.3 4.8 L8.1 9.5 C8 12.5 7.8 15 7.4 17.2 C7.1 18.9 6.6 20.5 6 21.8 L12.5 21.8 C12 20.4 11.7 18.8 11.6 17.2 C11.5 15.5 11.6 13.6 11.9 11.8 L12.2 10.3 C13 10.8 14 11.4 14.9 12.3 C15.8 13.2 16.5 14.3 16.7 15.5 C15.6 15.2 14.3 15 13.2 15.3 C12.3 15.5 11.6 16.2 11.3 17.2 C11.1 18 11.3 18.9 11.8 19.6 C12.4 20.4 13.3 20.9 14.3 21 C15.6 21.1 16.8 20.6 17.7 19.7 C18.7 18.7 19.2 17.3 19.1 15.8 C19 14.2 18.3 12.6 17.2 11.2 C16.4 10.2 15.4 9.3 14.4 8.6 C15.6 8 16.6 7 17.1 5.8 C16.1 6.3 14.9 6.5 13.8 6.3 C12.6 6.1 11.5 5.5 10.7 4.6 C9.8 3.6 8.4 2.9 7 2.7 C6 2.6 5 2.5 4 2.5 Z" />
-            <circle class="fs-milk-nipple" cx="16.2" cy="14.2" r="1.2" />
-        </svg>`;
-        iconWrap.title = Object.entries(value && typeof value === 'object' ? value : {}).map(([k, v]) => `${k}:${v}`).join(', ') || '无';
-        const state = iconState(field, value);
-        iconWrap.classList.add(`fs-milk-${state}`);
-        iconWrap.addEventListener('click', () => editTag(value && typeof value === 'object' ? value : {}, onChange));
-        return iconWrap;
-    }
-
-    // uterus 容器图标：容器剪影 + 内部液位填充（四态）
-    if (fxId === 'uterus') {
-        const iconWrap = el('div', 'fs-uterus-icon');
-        // 容器轮廓：圆润容器腔体 + 顶部两根弯管（示意），液位由 CSS 覆盖层呈现
-        iconWrap.innerHTML = `<svg viewBox="0 0 24 24" fill="none" class="fs-uterus-svg">
-            <path class="fs-uterus-shell" d="M7.2 8.5 C6.8 10.5 7 13.5 8.2 16 C9.3 18.2 11.2 19.6 12.9 19.6 C14.6 19.6 16.3 18.2 17.2 16 C18.2 13.6 18.3 10.6 17.9 8.6 C17.6 7.2 16.6 6.3 15.5 6.3 L8.9 6.3 C7.9 6.3 7.4 7.3 7.2 8.5 Z" />
-            <path class="fs-uterus-tube" d="M8.9 6.3 C7.5 5.2 6.2 4.8 5.2 5.2 C4.3 5.6 3.9 6.5 4 7.4" />
-            <path class="fs-uterus-tube" d="M15.5 6.3 C16.9 5.2 18.2 4.8 19.2 5.2 C20.1 5.6 20.5 6.5 20.4 7.4" />
-            <rect class="fs-uterus-liquid" x="8" y="14" width="8.4" height="5" rx="1.6" />
-        </svg>`;
-        iconWrap.title = Object.entries(value && typeof value === 'object' ? value : {}).map(([k, v]) => `${k}:${v}`).join(', ') || '无';
-        const level = liquidState(field, value);
-        iconWrap.classList.add(`fs-uterus-${level}`);
-        iconWrap.addEventListener('click', () => editTag(value && typeof value === 'object' ? value : {}, onChange));
-        return iconWrap;
-    }
 
     if (kind === 'bar') {
         const wrap = el('div', 'fs-bar');

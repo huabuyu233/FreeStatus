@@ -7,7 +7,7 @@
 FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由模板声明，AI 在回复尾部输出一个 ` ```fs ` JSON 有值快照，扩展解析后存入聊天、在右侧卡片侧栏渲染、可选回注给 AI。内置一套通用模板；题材专用模板由用户在设置面板自建或导入，随实例保存，不随仓库分发；用户可在本地 `local-templates/`（已 gitignore）存放私有模板文件，用设置面板「导入 JSON」恢复，该目录不入库。
 
 - 仓库：`git@github.com:huabuyu233/FreeStatus.git`，分支 `master`
-- 当前版本：v1.3.1；提交历史见第 11 节，近期工作记录见第 12 节
+- 当前版本：v1.3.3；提交历史见第 11 节，近期工作记录见第 12 节
 - 部署实例：本地开发实例 `127.0.0.1:8000`；用户云酒馆 `silly.huabuyu.fun:57731`
 - 扩展形态：`manifest.json` + `index.js`（ES module），无构建步骤，运行时零依赖
 
@@ -15,7 +15,7 @@ FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由
 
 已验证：
 
-- 24 个单测通过（`pnpm vitest run`），ESLint 干净（`pnpm eslint .`）
+- 32 个单测通过（`pnpm vitest run`），ESLint 干净（`pnpm eslint .`）
 - 本地 ST 与云酒馆均能加载扩展，侧栏与设置面板挂载成功
 - 端到端解析渲染已人工验证（云酒馆实测：AI 在回复末尾输出 ` ```fs ` 块后，侧栏出现角色卡片，各字段渲染正确，用户确认）
 - 修复了云酒馆「找不到 settings.html」：模板路径不再写死目录名，改用 `import.meta.url`
@@ -23,7 +23,7 @@ FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由
 
 尚未实测（下一步重点）：
 
-- v1.3.0 动效系统浏览器实测：22 个 fx 动画渲染、状态图标三态切换、值变化闪光反馈、动效总开关、reduced-motion 兼容（需云端更新扩展后强刷）
+- v1.3.0 动效系统浏览器实测：6 个 fx 动画渲染、值变化闪光反馈、动效总开关、reduced-motion 兼容（需云端更新扩展后强刷）
 - v1.2.0 有值快照链路的浏览器实测：空值字段隐藏、卡片底部「显示空字段」开关、手改值自动锁定
 - v1.2.1 侧栏视觉改动的实测：默认收起、小球展开动画、透明面板（需云端更新扩展后强刷）
 - 群聊多角色（代码按消息 `name` 与 `_char` 分角色，未跑过）
@@ -177,6 +177,8 @@ New-Item -ItemType Junction `
 - v1.2.1：侧栏默认收起，点击 FS 小球展开（滑入+淡入动画），小球开启态高亮；面板背景改为全透明、卡片悬浮显示；移动端抽屉同效
 - v1.3.0：新增字段动效系统（fx）。22 个内置动画 id（爱心/符印/波浪/湿光/状态图标等），模板字段 `"fx": "id"` 调用，纯渲染层不进协议；氛围粒子常驻 + 值变化闪光反馈；「小动画」总开关默认开；状态图标（milk）按值文本三态自动切换；设置面板新增动效对照表小节；`animations` 设置项；reduced-motion 兼容；测试 24 → 37。
 - v1.3.1：图标动效扩展。milk 图标改为带身体轮廓的躯干侧面剪影（孤立剪影不形象）；新增 `uterus` 容器图标动效（23 个 id），tag 值渲染为容器剪影 + 内部液位随值四态变化（空/半满/灌满脉动/溢出滴落，`liquidState()`）；`liquidState` 判定顺序修正（半 > 满）；测试 37 → 41。
+- v1.3.2：动效精简。移除 milk / uterus 两个图标型动效（含 SVG 图标渲染、`iconState()`/`liquidState()` 判定及相关 CSS），注册表 23 → 21；预设胸部/体内 fx 改回 `drip`/`wave`；测试 41 → 32。
+- v1.3.3：动效再度精简至 6 个。仅保留 `hearts`/`sparkle`/`shiver`/`sway`/`stars`/`wave`，删除其余 15 个（sigil/smoke/hypno/sheen/breathe/zzz/pulse/pop/bubbles/drip/heat/engorge/spray/gloss/flow）及对应 CSS；通用模板与私有预设的 fx 全部改指这 6 个。
 
 ## 12. 近期工作记录
 
@@ -190,4 +192,6 @@ New-Item -ItemType Junction `
 - 侧栏视觉重构（v1.2.1）：默认收起，点 FS 小球滑入 + 淡入展开（transform/opacity/visibility 过渡，收起后隐藏交互），小球开启态红底高亮、悬停放大、带阴影；面板去不透明背景与边框，卡片悬浮正文；移动端底部抽屉同效。
 - 用户本地私有模板迭代：私有模板文件维护在 `local-templates/`（gitignore），当前版本 28 字段、覆盖全部 6 种 kind；恢复方式为设置面板「导入 JSON」→ 选中模板。该目录内容不入库、不在仓库文档出现。
 - 动效系统（v1.3.0）：调研 Larson/ST-StatusTracking 等参照项目后落地。新建 `src/fx.js`（22 id 注册表 + `iconState()` 三态判定 + `particleStep()` 粒子配置）；`ui.js` 挂载 `fs-fx-*` 类与粒子层、实现 milk 状态图标渲染、加 `fs-changed` 值变化反馈（模块级快照对比）；`style.css` 追加 22 组动画（含 wave/pop 对 tag 类型的兼容、收起暂停、reduced-motion）；`settings.js/html` 加 fx 下拉、动效总开关、动效对照表（从注册表动态生成）；`templates.js` 加 `animations: true` 默认值；私有预设 28 字段全配 fx；`tests/fx.test.js` 新增 13 个测试（37 总）；design.md 新增第 9 节动效系统对照表；README 加特性一句话。
-- 图标迭代（v1.3.1）：用户反馈孤立乳房剪影不形象，milk 图标改为带身体轮廓的躯干侧面剪影（肩颈→背线→腰胯 + 胸前弧线 + 凸点）；用户要求体内字段图标化，新增 `uterus` 容器图标（注册表 23 个 id）：容器剪影 + 顶部弯管示意，内部液位矩形随值四态变化（空/半满/灌满+充盈脉动/溢出+底部滴落，`liquidState()` 按值文本判定，半>满顺序）；私有预设 `inside` 字段 fx wave→uterus；预览页 `local-templates/preview.html` 同步双图标并加 uterus 四态演示区（file:// 双击可开，CSS 引真实 style.css，fx 列表/SVG 与源码手工同步）。
+- 图标迭代（v1.3.1）：用户反馈孤立胸部剪影不形象，milk 图标改为带身体轮廓的躯干侧面剪影（肩颈→背线→腰胯 + 胸前弧线 + 凸起）；用户要求体内字段图标化，新增 `uterus` 容器图标（注册表 23 个 id）：容器剪影 + 顶部弯管示意，内部液位矩形随值四态变化（空/半满/灌满+充盈脉动/溢出+底部滴落，`liquidState()` 按值文本判定，半>满顺序）；私有预设 `inside` 字段 fx wave→uterus；预览页 `local-templates/preview.html` 同步双图标并加 uterus 四态演示区（file:// 双击可开，CSS 引真实 style.css，fx 列表/SVG 与源码手工同步）。
+- 动效精简（v1.3.2）：图标型动效（胸部/容器剪影）效果不理想、工程复杂，按「状态栏只需简单动效」的取向移除 milk/uterus 两个图标 id，仅保留通用 CSS 动效：`src/fx.js` 删 `iconState`/`liquidState` 与两条目、`ui.js` 删图标渲染分支、`style.css` 删图标样式（保留 `fsFxSpray` 关键帧供独立 spray 用）；预设胸部/体内 fx 改回 `drip`/`wave`；测试与文档同步。期间还评估过 Rive 状态机路线（装了 Rust+MinGW 工具链、构建 rive-cli、生成 `milk.riv`），因成本收益不划算放弃，相关临时产物未入库。
+- 动效定稿（v1.3.3）：用户要求只保留 6 个动效，据此把 `src/fx.js` 注册表缩到 `hearts`/`sparkle`/`shiver`/`sway`/`stars`/`wave`，删除其余 15 条及 `style.css` 对应动画块（同步清理 `fsFxRipple`/`fsFxSpray` 等仅供已删 id 的关键帧）；通用模板与私有预设 28 字段的 fx 全部改指这 6 个；测试与文档同步。

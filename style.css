@@ -444,7 +444,6 @@
 }
 
 .fs-fx-hearts .fs-fx-particles i {
-    content: '';
     width: 9px;
     height: 9px;
     bottom: 2px;
@@ -460,44 +459,6 @@
 
 .fs-fx-hearts .fs-bar-fill {
     box-shadow: 0 0 8px color-mix(in srgb, var(--fs-fx-color) 55%, transparent);
-}
-
-/* --- sigil 符印：字型光影循环 + 外扩光环（本体不动） --- */
-@keyframes fsFxSigilSweep {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
-}
-
-@keyframes fsFxRipple {
-    0% { transform: scale(0.85); opacity: 0.55; }
-    100% { transform: scale(1.6); opacity: 0; }
-}
-
-.fs-fx-sigil .fs-tag-val,
-.fs-fx-sigil .fs-row-label {
-    background: linear-gradient(90deg, var(--fs-dim) 25%, #fff 50%, var(--fs-dim) 75%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: fsFxSigilSweep 3s linear infinite;
-}
-
-.fs-fx-sigil .fs-bar-fill {
-    background: linear-gradient(90deg, var(--fs-fx-color), #fff3 40%, var(--fs-fx-color)) !important;
-    background-size: 200% 100% !important;
-    animation: fsFxSigilSweep 3s linear infinite;
-}
-
-.fs-fx-sigil::after {
-    content: '';
-    position: absolute;
-    inset: -4px -6px;
-    border: 1.5px solid var(--fs-fx-color);
-    border-radius: 8px;
-    opacity: 0;
-    pointer-events: none;
-    animation: fsFxRipple 3s ease-out infinite;
 }
 
 /* --- sparkle 星光 --- */
@@ -525,80 +486,6 @@
     animation-duration: 0.5s;
 }
 
-/* --- smoke 暗影 --- */
-@keyframes fsFxSmoke {
-    0% { transform: translateY(0) scale(0.7); opacity: 0; }
-    25% { opacity: 0.7; }
-    100% { transform: translateY(-20px) scale(1.2); opacity: 0; }
-}
-
-@keyframes fsFxSmokeStripes {
-    0% { background-position: 0 0; }
-    100% { background-position: 0 -14px; }
-}
-
-.fs-fx-smoke .fs-fx-particles i {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    bottom: 0;
-    background: #1a1023;
-    box-shadow: 0 0 4px #000a;
-    animation: fsFxSmoke 3.2s ease-in infinite;
-}
-
-.fs-fx-smoke .fs-fx-particles i:nth-child(1) { left: 20%; }
-.fs-fx-smoke .fs-fx-particles i:nth-child(2) { left: 40%; }
-.fs-fx-smoke .fs-fx-particles i:nth-child(3) { left: 60%; }
-.fs-fx-smoke .fs-fx-particles i:nth-child(4) { left: 80%; }
-
-.fs-fx-smoke .fs-bar-fill {
-    background: repeating-linear-gradient(180deg, var(--fs-fx-color), var(--fs-fx-color) 4px, #1a1023 4px, #1a1023 7px) !important;
-    animation: fsFxSmokeStripes 1.4s linear infinite;
-}
-
-/* --- hypno 催眠 --- */
-@keyframes fsFxSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.fs-fx-hypno::before {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    background: repeating-conic-gradient(from 0deg, transparent 0deg 18deg, rgba(122, 79, 191, 0.10) 18deg 36deg);
-    border-radius: 8px;
-    pointer-events: none;
-    animation: fsFxSpin 9s linear infinite;
-}
-
-/* --- sheen 流光 --- */
-@keyframes fsFxSheen {
-    0% { background-position: -150% 0; }
-    100% { background-position: 250% 0; }
-}
-
-.fs-fx-sheen .fs-bar-fill,
-.fs-fx-sheen .fs-chip,
-.fs-fx-sheen .fs-tag-val {
-    background-image: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%) !important;
-    background-size: 250% 100% !important;
-    animation: fsFxSheen 3s linear infinite;
-}
-
-/* --- breathe 呼吸 --- */
-@keyframes fsFxBreathe {
-    0%, 100% { box-shadow: 0 0 0 0 transparent; }
-    50% { box-shadow: 0 0 8px 1px color-mix(in srgb, var(--fs-fx-color) 40%, transparent); }
-}
-
-.fs-fx-breathe .fs-bar-fill,
-.fs-fx-breathe .fs-text {
-    border-radius: 6px;
-    animation: fsFxBreathe 2.8s ease-in-out infinite;
-}
-
 /* --- shiver 震颤 --- */
 @keyframes fsFxShiver {
     0%, 100% { transform: translateX(0); }
@@ -614,47 +501,6 @@
     animation: fsFxShiver 0.5s linear infinite;
 }
 
-/* --- zzz 困意 --- */
-@keyframes fsFxZzz {
-    0% { transform: translateY(0) scale(0.7); opacity: 0; }
-    25% { opacity: 0.85; }
-    100% { transform: translateY(-20px) translateX(5px) scale(1.15); opacity: 0; }
-}
-
-.fs-fx-zzz .fs-fx-particles i::before {
-    content: 'z';
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--fs-fx-color);
-}
-
-.fs-fx-zzz .fs-fx-particles i {
-    bottom: 0;
-    animation: fsFxZzz 3s ease-in-out infinite;
-}
-
-.fs-fx-zzz .fs-fx-particles i:nth-child(1) { left: 22%; }
-.fs-fx-zzz .fs-fx-particles i:nth-child(2) { left: 46%; }
-.fs-fx-zzz .fs-fx-particles i:nth-child(3) { left: 66%; }
-.fs-fx-zzz .fs-fx-particles i:nth-child(4) { left: 84%; }
-
-/* --- pulse 脉动 --- */
-@keyframes fsFxPulse {
-    0% { transform: scale(0.9); opacity: 0.5; }
-    100% { transform: scale(1.45); opacity: 0; }
-}
-
-.fs-fx-pulse::after {
-    content: '';
-    position: absolute;
-    inset: -2px -4px;
-    border: 1.5px solid var(--fs-fx-color);
-    border-radius: 10px;
-    opacity: 0;
-    pointer-events: none;
-    animation: fsFxPulse 2.4s ease-out infinite;
-}
-
 /* --- sway 摇摆 --- */
 @keyframes fsFxSway {
     0%, 100% { transform: rotate(-2.2deg); }
@@ -666,114 +512,6 @@
     transform-origin: bottom center;
     animation: fsFxSway 2.2s ease-in-out infinite;
 }
-
-/* --- pop 跳动（变化触发） --- */
-@keyframes fsFxPop {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.25); }
-    100% { transform: scale(1); }
-}
-
-.fs-fx-pop.fs-changed .fs-check,
-.fs-fx-pop.fs-changed .fs-bar,
-.fs-fx-pop.fs-changed .fs-tag,
-.fs-fx-pop.fs-changed .fs-chip {
-    animation: fsFxPop 0.45s ease-out;
-}
-
-/* --- wave 波浪 --- */
-@keyframes fsFxWave {
-    0%, 100% { border-radius: 6px 6px 6px 6px / 6px 6px 6px 6px; transform: translateY(0); }
-    50% { border-radius: 6px 6px 8px 8px / 8px 5px 8px 5px; transform: translateY(-1px); }
-}
-
-@keyframes fsFxWaveBg {
-    0% { background-position: 0 0; }
-    100% { background-position: 40px 0; }
-}
-
-@keyframes fsFxWaveText {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-1.2px); }
-}
-
-.fs-fx-wave .fs-bar-fill {
-    animation: fsFxWave 1.8s ease-in-out infinite;
-    background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0 3px, transparent 3px) !important;
-    background-size: 40px 100% !important;
-}
-
-.fs-fx-wave .fs-tag-val,
-.fs-fx-wave .fs-text {
-    display: inline-block;
-    animation: fsFxWaveText 2s ease-in-out infinite;
-}
-
-/* --- bubbles 气泡 --- */
-@keyframes fsFxBubbles {
-    0% { transform: translateY(0) scale(0.6); opacity: 0; }
-    30% { opacity: 0.8; }
-    100% { transform: translateY(-18px) scale(1); opacity: 0; }
-}
-
-.fs-fx-bubbles .fs-fx-particles i {
-    width: 4px;
-    height: 4px;
-    border: 1px solid var(--fs-fx-color);
-    border-radius: 50%;
-    bottom: 0;
-    animation: fsFxBubbles 2.4s ease-in infinite;
-}
-
-.fs-fx-bubbles .fs-fx-particles i:nth-child(1) { left: 16%; }
-.fs-fx-bubbles .fs-fx-particles i:nth-child(2) { left: 38%; }
-.fs-fx-bubbles .fs-fx-particles i:nth-child(3) { left: 62%; }
-.fs-fx-bubbles .fs-fx-particles i:nth-child(4) { left: 84%; }
-
-/* --- drip 滴落 --- */
-@keyframes fsFxDrip {
-    0% { transform: translateY(0) scaleY(0.6); opacity: 0; }
-    30% { opacity: 0.9; transform: translateY(0) scaleY(1); }
-    100% { transform: translateY(14px) scaleY(1.4); opacity: 0; }
-}
-
-.fs-fx-drip .fs-fx-particles i {
-    width: 4px;
-    height: 5px;
-    bottom: 0;
-    background: var(--fs-fx-color);
-    border-radius: 50% 50% 60% 60%;
-    animation: fsFxDrip 2.2s ease-in infinite;
-}
-
-.fs-fx-drip .fs-fx-particles i:nth-child(1) { left: 24%; }
-.fs-fx-drip .fs-fx-particles i:nth-child(2) { left: 48%; }
-.fs-fx-drip .fs-fx-particles i:nth-child(3) { left: 68%; }
-.fs-fx-drip .fs-fx-particles i:nth-child(4) { left: 86%; }
-
-/* --- heat 热浪 --- */
-@keyframes fsFxHeat {
-    0% { transform: translateY(0) scaleX(1); opacity: 0; }
-    30% { opacity: 0.6; }
-    100% { transform: translateY(-16px) scaleX(1.3); opacity: 0; }
-}
-
-.fs-fx-heat .fs-fx-particles i::before {
-    content: '≈';
-    font-size: 10px;
-    color: #e8577a;
-    text-shadow: 0 0 4px rgba(232, 87, 122, 0.6);
-}
-
-.fs-fx-heat .fs-fx-particles i {
-    bottom: 0;
-    animation: fsFxHeat 2s ease-in-out infinite;
-}
-
-.fs-fx-heat .fs-fx-particles i:nth-child(1) { left: 18%; }
-.fs-fx-heat .fs-fx-particles i:nth-child(2) { left: 40%; }
-.fs-fx-heat .fs-fx-particles i:nth-child(3) { left: 60%; }
-.fs-fx-heat .fs-fx-particles i:nth-child(4) { left: 80%; }
 
 /* --- stars 星环 --- */
 @keyframes fsFxStars {
@@ -795,222 +533,28 @@
     animation: fsFxStars 3s linear infinite;
 }
 
-/* --- milk 状态图标 --- */
-.fs-milk-icon {
-    display: inline-flex;
-    position: relative;
-    width: 28px;
-    height: 28px;
-    color: var(--fs-fx-color, var(--fs-accent));
-    cursor: pointer;
+/* --- wave 波浪 --- */
+@keyframes fsFxWave {
+    0%, 100% { border-radius: 6px 6px 6px 6px / 6px 6px 6px 6px; transform: translateY(0); }
+    50% { border-radius: 6px 6px 8px 8px / 8px 5px 8px 5px; transform: translateY(-1px); }
 }
 
-.fs-milk-svg {
-    width: 100%;
-    height: 100%;
-    opacity: 0.9;
+@keyframes fsFxWaveText {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-1.2px); }
 }
 
-.fs-milk-nipple {
-    fill: #f2eee6;
-    stroke: #1c1f26;
-    stroke-width: 0.6;
+.fs-fx-wave .fs-bar-fill {
+    animation: fsFxWave 1.8s ease-in-out infinite;
+    background-image: linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0 3px, transparent 3px) !important;
+    background-size: 40px 100% !important;
 }
 
-.fs-milk-idle {
-    animation: none;
+.fs-fx-wave .fs-tag-val,
+.fs-fx-wave .fs-text {
+    display: inline-block;
+    animation: fsFxWaveText 2s ease-in-out infinite;
 }
-
-.fs-milk-engorge::after {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    border: 1.5px solid currentColor;
-    border-radius: 50%;
-    opacity: 0;
-    pointer-events: none;
-    animation: fsFxRipple 2.6s ease-out infinite;
-}
-
-@keyframes fsFxSpray {
-    0% { transform: translate(0, 0) scale(0.5, 0.5); opacity: 0; }
-    20% { opacity: 1; }
-    100% { transform: translate(5px, 12px) scale(0.6, 1.6); opacity: 0; }
-}
-
-.fs-milk-spray::before,
-.fs-milk-spray::after {
-    content: '';
-    position: absolute;
-    left: 19px;
-    top: 16px;
-    width: 3px;
-    height: 6px;
-    border-radius: 50% 50% 60% 60%;
-    background: #f2eee6;
-    opacity: 0;
-    animation: fsFxSpray 1.8s ease-in infinite;
-}
-
-.fs-milk-spray::after {
-    animation-delay: -0.9s;
-    left: 21px;
-}
-
-/* --- uterus 容器图标 --- */
-.fs-uterus-icon {
-    display: inline-flex;
-    position: relative;
-    width: 28px;
-    height: 28px;
-    color: var(--fs-fx-color, var(--fs-accent));
-    cursor: pointer;
-}
-
-.fs-uterus-svg {
-    width: 100%;
-    height: 100%;
-}
-
-.fs-uterus-shell {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-}
-
-.fs-uterus-tube {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.2;
-    stroke-linecap: round;
-    opacity: 0.8;
-}
-
-.fs-uterus-liquid {
-    fill: #f2eee6;
-    opacity: 0.25;
-    transition: y 0.6s ease, height 0.6s ease, opacity 0.4s ease;
-}
-
-/* 四态液位：空（几乎不可见）→ 半满 → 灌满（充盈脉动）→ 溢出（滴落） */
-.fs-uterus-empty .fs-uterus-liquid {
-    opacity: 0.06;
-    y: 17.6px;
-    height: 1.4px;
-}
-
-.fs-uterus-half .fs-uterus-liquid {
-    opacity: 0.3;
-    y: 15px;
-    height: 4px;
-}
-
-.fs-uterus-full .fs-uterus-liquid {
-    opacity: 0.42;
-    y: 11.5px;
-    height: 7.5px;
-}
-
-@keyframes fsUterusSlosh {
-    0%, 100% { transform: translateY(0) scaleY(1); }
-    50% { transform: translateY(-0.6px) scaleY(1.06); }
-}
-
-.fs-uterus-full .fs-uterus-liquid {
-    animation: fsUterusSlosh 2.2s ease-in-out infinite;
-    transform-origin: center bottom;
-}
-
-.fs-uterus-overflow .fs-uterus-liquid {
-    opacity: 0.48;
-    y: 9.8px;
-    height: 9.2px;
-    animation: fsUterusSlosh 1.6s ease-in-out infinite;
-    transform-origin: center bottom;
-}
-
-@keyframes fsUterusDrip {
-    0% { transform: translateY(0) scaleY(0.6); opacity: 0; }
-    30% { opacity: 0.9; }
-    100% { transform: translateY(11px) scaleY(1.5); opacity: 0; }
-}
-
-.fs-uterus-overflow::after {
-    content: '';
-    position: absolute;
-    left: 12.5px;
-    bottom: 1px;
-    width: 3px;
-    height: 5px;
-    border-radius: 50% 50% 60% 60%;
-    background: #f2eee6;
-    opacity: 0;
-    animation: fsUterusDrip 2s ease-in infinite;
-}
-
-/* --- engorge 态-扩散（可单独调用） --- */
-.fs-fx-engorge::after {
-    content: '';
-    position: absolute;
-    inset: -4px -6px;
-    border: 1.5px solid var(--fs-fx-color);
-    border-radius: 10px;
-    opacity: 0;
-    pointer-events: none;
-    animation: fsFxRipple 2.6s ease-out infinite;
-}
-
-/* --- spray 态-流出（可单独调用） --- */
-.fs-fx-spray .fs-fx-particles i {
-    width: 4px;
-    height: 6px;
-    top: 50%;
-    background: #f2eee6;
-    border-radius: 50% 50% 60% 60%;
-    animation: fsFxSpray 1.8s ease-in infinite;
-}
-
-.fs-fx-spray .fs-fx-particles i:nth-child(1) { left: 20%; }
-.fs-fx-spray .fs-fx-particles i:nth-child(2) { left: 40%; }
-.fs-fx-spray .fs-fx-particles i:nth-child(3) { left: 60%; }
-.fs-fx-spray .fs-fx-particles i:nth-child(4) { left: 80%; }
-
-/* --- gloss 湿光 --- */
-@keyframes fsFxGloss {
-    0% { background-position: -150% 0; }
-    100% { background-position: 250% 0; }
-}
-
-.fs-fx-gloss .fs-tag-val,
-.fs-fx-gloss .fs-text,
-.fs-fx-gloss .fs-bar-fill {
-    background-image: linear-gradient(100deg, transparent 42%, rgba(255, 255, 255, 0.28) 50%, transparent 58%) !important;
-    background-size: 250% 100% !important;
-    animation: fsFxGloss 3.6s linear infinite;
-}
-
-/* --- flow 缓淌 --- */
-@keyframes fsFxFlow {
-    0% { transform: translateY(0) scaleY(0.7); opacity: 0; }
-    25% { opacity: 0.85; }
-    70% { transform: translateY(8px) scaleY(1.3); }
-    100% { transform: translateY(16px) scaleY(1.6); opacity: 0; }
-}
-
-.fs-fx-flow .fs-fx-particles i {
-    width: 3px;
-    height: 7px;
-    top: 30%;
-    background: var(--fs-fx-color);
-    border-radius: 40% 40% 60% 60%;
-    animation: fsFxFlow 2.6s ease-in infinite;
-}
-
-.fs-fx-flow .fs-fx-particles i:nth-child(1) { left: 22%; }
-.fs-fx-flow .fs-fx-particles i:nth-child(2) { left: 44%; }
-.fs-fx-flow .fs-fx-particles i:nth-child(3) { left: 64%; }
-.fs-fx-flow .fs-fx-particles i:nth-child(4) { left: 84%; }
 
 /* 侧栏收起时全部暂停（保留 transition） */
 .freestatus-sidebar:not(.open),
@@ -1025,10 +569,7 @@
     .fs-fx,
     .fs-fx *,
     .fs-fx *::before,
-    .fs-fx *::after,
-    .fs-milk-icon,
-    .fs-milk-icon::before,
-    .fs-milk-icon::after {
+    .fs-fx *::after {
         animation: none !important;
     }
 

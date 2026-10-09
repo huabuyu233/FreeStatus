@@ -4,12 +4,12 @@ export const DEFAULT_TEMPLATE = {
     version: 1,
     fields: [
         { key: 'affection', label: '好感', kind: 'bar', min: 0, max: 100, color: '#e8577a', default: 0, inject: true, locked: false, fx: 'hearts', sample: 45 },
-        { key: 'trust', label: '信任', kind: 'bar', min: 0, max: 100, color: '#57b8e8', default: 0, inject: true, locked: false, fx: 'sheen', sample: 30 },
-        { key: 'mood', label: '心情', kind: 'chip', default: '', inject: true, locked: false, fx: 'pulse', sample: '平静' },
-        { key: 'condition', label: '状态', kind: 'text', default: '', inject: true, locked: false, fx: 'breathe', sample: '一切正常' },
+        { key: 'trust', label: '信任', kind: 'bar', min: 0, max: 100, color: '#57b8e8', default: 0, inject: true, locked: false, fx: 'wave', sample: 30 },
+        { key: 'mood', label: '心情', kind: 'chip', default: '', inject: true, locked: false, fx: 'sparkle', sample: '平静' },
+        { key: 'condition', label: '状态', kind: 'text', default: '', inject: true, locked: false, sample: '一切正常' },
         { key: 'impressions', label: '印象', kind: 'tag', min: 0, max: 100, default: 0, inject: true, locked: false, fx: 'sparkle', note: '键=对象，值=0-100 程度', sample: { 老师: 50 } },
         { key: 'items', label: '随身物品', kind: 'list', default: '', inject: true, locked: false, sample: ['手机', '钥匙'] },
-        { key: 'injured', label: '受伤', kind: 'check', default: false, inject: true, locked: false, fx: 'pop', sample: false },
+        { key: 'injured', label: '受伤', kind: 'check', default: false, inject: true, locked: false, fx: 'stars', sample: false },
     ],
 };
 
