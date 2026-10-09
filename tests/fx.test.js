@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FX, FX_IDS, particleStep } from '../src/fx.js';
+import { FX, FX_IDS, fxIntensity, particleStep } from '../src/fx.js';
 import { buildProtocolPrompt, DEFAULT_TEMPLATE } from '../src/templates.js';
 
 describe('fx registry', () => {
@@ -21,6 +21,22 @@ describe('fx registry', () => {
             expect(f.desc).toBeTruthy();
             expect(Array.isArray(f.kind)).toBe(true);
         }
+    });
+});
+
+describe('fxIntensity', () => {
+    it('hearts and sparkle scale with value', () => {
+        const h = fxIntensity('hearts');
+        expect(h).toBeTruthy();
+        expect(h.max).toBeGreaterThan(h.min);
+        expect(h.dur[0]).toBeGreaterThan(h.dur[1]);
+        expect(fxIntensity('sparkle')).toBeTruthy();
+    });
+
+    it('other ids have no intensity config', () => {
+        expect(fxIntensity('wave')).toBeNull();
+        expect(fxIntensity('shiver')).toBeNull();
+        expect(fxIntensity('stars')).toBeNull();
     });
 });
 

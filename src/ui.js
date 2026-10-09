@@ -1,6 +1,6 @@
 import { coerceValue, emptyValue, inferKind } from './parser.js';
 import { getActiveTemplate, getSettings, getChatState, getCharState, setCharLock, updateCharValues, saveChatState, saveSettings } from './state.js';
-import { FX_IDS, particleStep } from './fx.js';
+import { FX_IDS, fxIntensity, particleStep } from './fx.js';
 
 let rootEl = null;
 let toggleEl = null;
@@ -17,13 +17,48 @@ function el(tag, cls, text) {
     return node;
 }
 
-/** 注入粒子层（4 个 <i>，交错延迟） */
-function injectParticles(container, id) {
+/** 字段值 → 0~1 强度比例（bar 按数值，check 按真假，其余默认中等） */
+function fieldRatio(field, value) {
+    if (field.kind === 'bar') {
+        const min = field.min ?? 0;
+        const max = field.max ?? 100;
+        const cur = Number.isFinite(value) ? value : min;
+        return Math.min(1, Math.max(0, (cur - min) / Math.max(1, max - min)));
+    }
+    if (field.kind === 'check') {
+        return value ? 1 : 0;
+    }
+    return 0.5;
+}
+
+const SPARKLE_TOPS = [8, 46, 12, 60, 28, 54, 4, 34, 50, 18, 40, 24];
+
+/** 注入粒子层：有强度配置的动效按比例决定数量与速度，其余固定 4 个 */
+function injectParticles(container, id, ratio = 0.5) {
+    const layer = el('span', 'fs-fx-particles');
+    const conf = fxIntensity(id);
+    if (conf) {
+        const count = Math.max(1, Math.round(conf.min + (conf.max - conf.min) * ratio));
+        const dur = conf.dur[0] + (conf.dur[1] - conf.dur[0]) * ratio;
+        const step = (dur * 1000) / count;
+        for (let i = 0; i < count; i++) {
+            const p = el('i');
+            const left = count === 1 ? 50 : 8 + (84 * i) / (count - 1);
+            p.style.left = `${left.toFixed(1)}%`;
+            p.style.animationDuration = `${dur.toFixed(2)}s`;
+            if (id === 'sparkle') {
+                p.style.top = `${SPARKLE_TOPS[i % SPARKLE_TOPS.length]}%`;
+            }
+            p.style.animationDelay = `${(-i * step).toFixed(0)}ms`;
+            layer.appendChild(p);
+        }
+        container.appendChild(layer);
+        return;
+    }
     const step = particleStep(id);
     if (!step) {
         return;
     }
-    const layer = el('span', 'fs-fx-particles');
     for (let i = 0; i < 4; i++) {
         const p = el('i');
         p.style.animationDelay = `${-i * step}ms`;
@@ -179,7 +214,7 @@ function renderRow(charName, field, value, isUnknown) {
     if (fxId) {
         valueBox.classList.add('fs-fx', `fs-fx-${fxId}`);
         valueBox.style.setProperty('--fs-fx-color', field.color || 'var(--fs-accent)');
-        injectParticles(valueBox, fxId);
+        injectParticles(valueBox, fxId, fieldRatio(effective, value));
         markChanged(valueBox, charName, field.key);
     }
     row.appendChild(valueBox);

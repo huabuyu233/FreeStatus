@@ -6,8 +6,8 @@
  */
 
 export const FX = [
-    { id: 'hearts', label: '爱心', kind: ['bar', 'chip'], desc: '♥ 从条上缓缓升起、摇曳、渐隐' },
-    { id: 'sparkle', label: '星光', kind: ['bar', 'tag', 'text'], desc: '✦✧ 交替闪烁' },
+    { id: 'hearts', label: '爱心', kind: ['bar', 'chip'], desc: '♥ 上升渐隐，数量随数值增多' },
+    { id: 'sparkle', label: '星光', kind: ['bar', 'tag', 'text'], desc: '✦✧ 交替闪烁，密度随数值增强' },
     { id: 'shiver', label: '震颤', kind: ['text', 'chip', 'tag'], desc: 'x 轴微抖' },
     { id: 'sway', label: '摇摆', kind: ['chip', 'list'], desc: '轻微旋转摆动' },
     { id: 'stars', label: '星环', kind: ['check'], desc: '✦ 绕徽章环绕旋转' },
@@ -16,6 +16,24 @@ export const FX = [
 
 /** 动效 id 集合（查重 / 下拉生成用） */
 export const FX_IDS = new Set(FX.map(f => f.id));
+
+/**
+ * 强度配置：粒子数量与速度随数值（bar 的 0~1 比例）变化
+ * min/max = 粒子数范围；dur = [慢, 快] 动画周期（秒）
+ */
+const INTENSITY = {
+    hearts: { min: 1, max: 9, dur: [3.0, 1.1] },
+    sparkle: { min: 2, max: 10, dur: [2.4, 1.0] },
+};
+
+/**
+ * 取得动效的强度配置
+ * @param {string} id
+ * @returns {{min:number,max:number,dur:number[]}|null} 无则为 null（固定密度）
+ */
+export function fxIntensity(id) {
+    return INTENSITY[id] ?? null;
+}
 
 /**
  * 动效粒子配置（ui.js 注入用）

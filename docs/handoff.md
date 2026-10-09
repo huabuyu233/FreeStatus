@@ -7,7 +7,7 @@
 FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由模板声明，AI 在回复尾部输出一个 ` ```fs ` JSON 有值快照，扩展解析后存入聊天、在右侧卡片侧栏渲染、可选回注给 AI。内置一套通用模板；题材专用模板由用户在设置面板自建或导入，随实例保存，不随仓库分发；用户可在本地 `local-templates/`（已 gitignore）存放私有模板文件，用设置面板「导入 JSON」恢复，该目录不入库。
 
 - 仓库：`git@github.com:huabuyu233/FreeStatus.git`，分支 `master`
-- 当前版本：v1.3.3；提交历史见第 11 节，近期工作记录见第 12 节
+- 当前版本：v1.3.4；提交历史见第 11 节，近期工作记录见第 12 节
 - 部署实例：本地开发实例 `127.0.0.1:8000`；用户云酒馆 `silly.huabuyu.fun:57731`
 - 扩展形态：`manifest.json` + `index.js`（ES module），无构建步骤，运行时零依赖
 
@@ -179,6 +179,7 @@ New-Item -ItemType Junction `
 - v1.3.1：图标动效扩展。milk 图标改为带身体轮廓的躯干侧面剪影（孤立剪影不形象）；新增 `uterus` 容器图标动效（23 个 id），tag 值渲染为容器剪影 + 内部液位随值四态变化（空/半满/灌满脉动/溢出滴落，`liquidState()`）；`liquidState` 判定顺序修正（半 > 满）；测试 37 → 41。
 - v1.3.2：动效精简。移除 milk / uterus 两个图标型动效（含 SVG 图标渲染、`iconState()`/`liquidState()` 判定及相关 CSS），注册表 23 → 21；预设胸部/体内 fx 改回 `drip`/`wave`；测试 41 → 32。
 - v1.3.3：动效再度精简至 6 个。仅保留 `hearts`/`sparkle`/`shiver`/`sway`/`stars`/`wave`，删除其余 15 个（sigil/smoke/hypno/sheen/breathe/zzz/pulse/pop/bubbles/drip/heat/engorge/spray/gloss/flow）及对应 CSS；通用模板与私有预设的 fx 全部改指这 6 个。
+- v1.3.4：动效密度随数值变化。`hearts`/`sparkle` 的粒子数量与速度按字段数值比例缩放（bar 值低→一两颗、值高→密集涌现）；`ui.js` 新增 `fieldRatio()`、粒子改为按强度动态生成并内联定位与周期，`fx.js` 新增 `fxIntensity()` 强度配置；测试 32 → 34。
 
 ## 12. 近期工作记录
 
@@ -195,3 +196,4 @@ New-Item -ItemType Junction `
 - 图标迭代（v1.3.1）：用户反馈孤立胸部剪影不形象，milk 图标改为带身体轮廓的躯干侧面剪影（肩颈→背线→腰胯 + 胸前弧线 + 凸起）；用户要求体内字段图标化，新增 `uterus` 容器图标（注册表 23 个 id）：容器剪影 + 顶部弯管示意，内部液位矩形随值四态变化（空/半满/灌满+充盈脉动/溢出+底部滴落，`liquidState()` 按值文本判定，半>满顺序）；私有预设 `inside` 字段 fx wave→uterus；预览页 `local-templates/preview.html` 同步双图标并加 uterus 四态演示区（file:// 双击可开，CSS 引真实 style.css，fx 列表/SVG 与源码手工同步）。
 - 动效精简（v1.3.2）：图标型动效（胸部/容器剪影）效果不理想、工程复杂，按「状态栏只需简单动效」的取向移除 milk/uterus 两个图标 id，仅保留通用 CSS 动效：`src/fx.js` 删 `iconState`/`liquidState` 与两条目、`ui.js` 删图标渲染分支、`style.css` 删图标样式（保留 `fsFxSpray` 关键帧供独立 spray 用）；预设胸部/体内 fx 改回 `drip`/`wave`；测试与文档同步。期间还评估过 Rive 状态机路线（装了 Rust+MinGW 工具链、构建 rive-cli、生成 `milk.riv`），因成本收益不划算放弃，相关临时产物未入库。
 - 动效定稿（v1.3.3）：用户要求只保留 6 个动效，据此把 `src/fx.js` 注册表缩到 `hearts`/`sparkle`/`shiver`/`sway`/`stars`/`wave`，删除其余 15 条及 `style.css` 对应动画块（同步清理 `fsFxRipple`/`fsFxSpray` 等仅供已删 id 的关键帧）；通用模板与私有预设 28 字段的 fx 全部改指这 6 个；测试与文档同步。
+- 动画密度随数值（v1.3.4）：爱心/星光两类粒子动效的粒子数量与动画速度改为随字段数值比例变化（色欲等 bar 值低时只有一两颗爱心，值高时持续密集涌现）；`ui.js` 加 `fieldRatio()` 计算 0~1 强度、`injectParticles` 按强度动态生成粒子并内联设置位置与周期；`fx.js` 加 `fxIntensity()` 强度范围配置；design.md 与测试同步。同时清理了 Rive 评估期安装的 Rust / MinGW 工具链与临时包。
