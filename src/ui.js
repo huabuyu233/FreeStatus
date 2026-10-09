@@ -82,7 +82,8 @@ function injectPrefixParticles(marker, id, ratio) {
     const layer = el('span', 'fs-fx-particles');
     for (let i = 0; i < n; i++) {
         const p = el('i');
-        p.style.left = `${42 + (i % 2) * 12}%`;
+        const left = n === 1 ? 50 : 8 + (84 * (i + 0.5)) / n;
+        p.style.left = `${left.toFixed(1)}%`;
         p.style.animationDuration = `${dur.toFixed(2)}s`;
         p.style.animationDelay = `${(-i * step).toFixed(0)}ms`;
         layer.appendChild(p);
@@ -218,19 +219,14 @@ function renderRow(charName, field, value, isUnknown) {
         : null;
     const effective = isUnknown ? { kind: inferKind(value), min: 0, max: 100 } : field;
     const fxRatio = fieldRatio(effective, value);
-    if (fxId) {
+    if (fxId && effective.kind === 'bar' && fxIntensity(fxId)) {
         const color = field.color || 'var(--fs-accent)';
-        const marker = el('span', 'fs-fx-marker');
+        const marker = el('span', 'fs-fx-marker fs-fx');
+        marker.classList.add(`fs-fx-${fxId}`);
         marker.style.color = color;
-        if (fxIntensity(fxId)) {
-            marker.classList.add('fs-fx', `fs-fx-${fxId}`);
-            marker.style.setProperty('--fs-fx-color', color);
-            marker.appendChild(el('span', 'fs-marker-glyph', fxGlyph(fxId)));
-            injectPrefixParticles(marker, fxId, fxRatio);
-        } else {
-            marker.classList.add(`fs-marker-${fxId}`);
-            marker.textContent = fxGlyph(fxId);
-        }
+        marker.style.setProperty('--fs-fx-color', color);
+        marker.appendChild(el('span', 'fs-marker-glyph', fxGlyph(fxId)));
+        injectPrefixParticles(marker, fxId, fxRatio);
         row.appendChild(marker);
     }
     const label = el('div', 'fs-row-label', field.label);
