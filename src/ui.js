@@ -33,7 +33,7 @@ function fieldRatio(field, value) {
 
 const SPARKLE_TOPS = [8, 46, 12, 60, 28, 54, 4, 34, 50, 18, 40, 24];
 
-/** 前缀标记数量：爱心/星光随数值（0~1）由少到多 */
+/** 前缀标记粒子数量：爱心/星光随数值（0~1）由少到多 */
 function fxPrefixCount(id, ratio) {
     const p = fxPrefix(id);
     return Math.max(1, Math.round(p.min + (p.max - p.min) * ratio));
@@ -41,48 +41,53 @@ function fxPrefixCount(id, ratio) {
 
 /**
  * 注入粒子层
- * @param {number} ratio 强度 0~1（数值条已填充比例）
+ * @param {number} count 粒子数量
  * @param {number} spread 分布区间 0~1（粒子只落在该宽度内）
- * @param {number} fixedCount 固定粒子数（>0 时忽略强度数量，用于数值条）
+ * @param {number} dur 动画周期（秒），0 表示用 CSS 默认
  */
-function injectParticles(container, id, ratio = 0.5, spread = 1, fixedCount = 0) {
+function injectParticles(container, id, count, spread = 1, dur = 0) {
+    const fallback = particleStep(id);
+    if (!dur && !fallback) {
+        return;
+    }
     const layer = el('span', 'fs-fx-particles');
-    const conf = fxIntensity(id);
-    if (conf || fixedCount > 0) {
-        let count, dur;
-        if (fixedCount > 0) {
-            count = fixedCount;
-            dur = 2;
-        } else {
-            count = Math.max(1, Math.round(conf.min + (conf.max - conf.min) * ratio));
-            dur = conf.dur[0] + (conf.dur[1] - conf.dur[0]) * ratio;
-        }
-        const step = (dur * 1000) / count;
-        const span = Math.min(1, Math.max(0, spread)) * 100;
-        for (let i = 0; i < count; i++) {
-            const p = el('i');
-            const left = count === 1 ? span / 2 : span * ((i + 0.5) / count);
-            p.style.left = `${left.toFixed(1)}%`;
-            p.style.animationDuration = `${dur.toFixed(2)}s`;
-            if (id === 'sparkle') {
-                p.style.top = `${SPARKLE_TOPS[i % SPARKLE_TOPS.length]}%`;
-            }
-            p.style.animationDelay = `${(-i * step).toFixed(0)}ms`;
-            layer.appendChild(p);
-        }
-        container.appendChild(layer);
-        return;
-    }
-    const step = particleStep(id);
-    if (!step) {
-        return;
-    }
-    for (let i = 0; i < 4; i++) {
+    const n = Math.max(1, count || 4);
+    const span = Math.min(1, Math.max(0, spread)) * 100;
+    const step = dur ? (dur * 1000) / n : fallback;
+    for (let i = 0; i < n; i++) {
         const p = el('i');
-        p.style.animationDelay = `${-i * step}ms`;
+        const left = n === 1 ? span / 2 : span * ((i + 0.5) / n);
+        p.style.left = `${left.toFixed(1)}%`;
+        if (dur) {
+            p.style.animationDuration = `${dur.toFixed(2)}s`;
+        }
+        if (id === 'sparkle') {
+            p.style.top = `${SPARKLE_TOPS[i % SPARKLE_TOPS.length]}%`;
+        }
+        p.style.animationDelay = `${(-i * step).toFixed(0)}ms`;
         layer.appendChild(p);
     }
     container.appendChild(layer);
+}
+
+/** 字段名前缀：爱心/星光向上飘的粒子，数量与速度随数值增强 */
+function injectPrefixParticles(marker, id, ratio) {
+    const conf = fxIntensity(id);
+    if (!conf) {
+        return;
+    }
+    const n = fxPrefixCount(id, ratio);
+    const dur = conf.dur[0] + (conf.dur[1] - conf.dur[0]) * ratio;
+    const step = (dur * 1000) / n;
+    const layer = el('span', 'fs-fx-particles');
+    for (let i = 0; i < n; i++) {
+        const p = el('i');
+        p.style.left = `${42 + (i % 2) * 12}%`;
+        p.style.animationDuration = `${dur.toFixed(2)}s`;
+        p.style.animationDelay = `${(-i * step).toFixed(0)}ms`;
+        layer.appendChild(p);
+    }
+    marker.appendChild(layer);
 }
 
 /** 值变化时的一次性反馈类 */
@@ -214,9 +219,18 @@ function renderRow(charName, field, value, isUnknown) {
     const effective = isUnknown ? { kind: inferKind(value), min: 0, max: 100 } : field;
     const fxRatio = fieldRatio(effective, value);
     if (fxId) {
-        const glyph = fxGlyph(fxId).repeat(fxPrefixCount(fxId, fxRatio));
-        const marker = el('span', `fs-fx-marker fs-marker-${fxId}`, glyph);
-        marker.style.color = field.color || 'var(--fs-accent)';
+        const color = field.color || 'var(--fs-accent)';
+        const marker = el('span', 'fs-fx-marker');
+        marker.style.color = color;
+        if (fxIntensity(fxId)) {
+            marker.classList.add('fs-fx', `fs-fx-${fxId}`);
+            marker.style.setProperty('--fs-fx-color', color);
+            marker.appendChild(el('span', 'fs-marker-glyph', fxGlyph(fxId)));
+            injectPrefixParticles(marker, fxId, fxRatio);
+        } else {
+            marker.classList.add(`fs-marker-${fxId}`);
+            marker.textContent = fxGlyph(fxId);
+        }
         row.appendChild(marker);
     }
     const label = el('div', 'fs-row-label', field.label);
@@ -240,9 +254,9 @@ function renderRow(charName, field, value, isUnknown) {
         valueBox.classList.add('fs-fx', `fs-fx-${fxId}`);
         valueBox.style.setProperty('--fs-fx-color', field.color || 'var(--fs-accent)');
         if (effective.kind === 'bar') {
-            injectParticles(valueBox, fxId, fxRatio, fxRatio, 5);
+            injectParticles(valueBox, fxId, 5, fxRatio, 2);
         } else {
-            injectParticles(valueBox, fxId, fxRatio);
+            injectParticles(valueBox, fxId, 4, 1, 0);
         }
         markChanged(valueBox, charName, field.key);
     }

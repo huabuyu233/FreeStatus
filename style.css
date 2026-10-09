@@ -441,12 +441,16 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 12px;
+    position: relative;
+    width: 16px;
     flex-shrink: 0;
     font-size: 11px;
     line-height: 1;
-    letter-spacing: -1px;
     transform-origin: center;
+}
+
+.fs-marker-glyph {
+    font-size: 11px;
 }
 
 @keyframes fsMarkerPulse {
