@@ -7,7 +7,7 @@
 FreeStatus（自由状态栏）是一个 SillyTavern 第三方扩展。字段由模板声明，AI 在回复尾部输出一个 ` ```fs ` JSON 有值快照，扩展解析后存入聊天、在右侧卡片侧栏渲染、可选回注给 AI。内置一套通用模板；题材专用模板由用户在设置面板自建或导入，随实例保存，不随仓库分发；用户可在本地 `local-templates/`（已 gitignore）存放私有模板文件，用设置面板「导入 JSON」恢复，该目录不入库。
 
 - 仓库：`git@github.com:huabuyu233/FreeStatus.git`，分支 `master`
-- 当前版本：v1.3.10；提交历史见第 11 节，近期工作记录见第 12 节
+- 当前版本：v1.3.11；提交历史见第 11 节，近期工作记录见第 12 节
 - 部署实例：本地开发实例 `127.0.0.1:8000`；用户云酒馆 `silly.huabuyu.fun:57731`
 - 扩展形态：`manifest.json` + `index.js`（ES module），无构建步骤，运行时零依赖
 
@@ -186,6 +186,7 @@ New-Item -ItemType Junction `
 - v1.3.8：前缀改为上升粒子。字段名前缀不再横向叠字形，而是「向上飘」的爱心/星光粒子（数量与速度随数值增强，`injectPrefixParticles()`），基准字形锚定位置；数值条仍固定数量、只覆盖填充区。测试 36。
 - v1.3.9：前缀限定与铺开。前缀动画只保留给 `bar` 且 `hearts`/`sparkle` 的字段（即色欲/快感），其余字段不再有前缀标记；前缀粒子改为沿前缀横向铺开（不再从一侧冒出）。测试 36。
 - v1.3.10：非数值条字段不再有「铺满整行」的粒子动画。粒子层只用于 `bar`（落在填充区内）；非 bar 字段的 `shiver`/`sway`/`wave` 直接作用在值本身，check 的 `stars` 为绕徽章的锚定粒子（`injectBarParticles`/`injectAnchoredParticles`）。所有行预留前缀占位以保证标签与数值条对齐。测试 36。
+- v1.3.11：协议「宁缺勿滥」。`buildProtocolPrompt` 新增第 1 条规则（只输出角色真正有的状态，没有的状态省略而非补 0/空值），数值字段处于基准或无明显变化时不输出、布尔仅成立时输出；`bar` 描述加「（无该状态时省略，不要用 0 占位）」、`check` 加「（仅成立时输出）」；默认模板 `injured` 示例值 true；protocol.md/design.md 同步。测试 36。
 
 ## 12. 近期工作记录
 
@@ -209,3 +210,4 @@ New-Item -ItemType Junction `
 - 前缀上升粒子（v1.3.8）：按用户要求把前缀从「横向叠爱心」改为「爱心向上飘」——`ui.js` 新增 `injectPrefixParticles()`（前缀内注入上升粒子，数量与速度随数值增强，基准字形锚定），`style.css` 的 `.fs-fx-marker` 改 `position:relative` 以承载粒子；预览页同步。
 - 前缀限定与铺开（v1.3.9）：按用户反馈——前缀动画只给 `bar` + `hearts`/`sparkle` 的字段（色欲/快感），其余字段不加前缀；前缀粒子沿前缀横向铺开（8%~92%），不再只从一侧冒；同步移除不再使用的单字形标记 CSS（`fsMarker*`）。
 - 非条字段动画收敛（v1.3.10）：用户反馈短文字值也铺满整行漂浮，改为粒子层只用于 `bar`（`injectBarParticles` 落在填充区）；非 bar 字段保留内容自身动画（抖动/摆动/波浪），check 星环用锚定粒子（`injectAnchoredParticles`）；并让所有行预留前缀占位，修正标签与数值条左边缘对齐。
+- 协议宁缺勿滥（v1.3.11）：用户反馈 AI 常为凑状态输出其实不存在的字段（如角色不恐惧也写「恐惧」），在 `buildProtocolPrompt` 增「宁缺勿滥」规则并强化省略语义（数值基准省略、布尔仅成立时输出）；`KIND_DESC` 的 bar/check 加省略提示；同步 protocol.md 示例与规则、design.md §11。

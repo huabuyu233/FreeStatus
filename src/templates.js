@@ -9,7 +9,7 @@ export const DEFAULT_TEMPLATE = {
         { key: 'condition', label: '状态', kind: 'text', default: '', inject: true, locked: false, sample: '一切正常' },
         { key: 'impressions', label: '印象', kind: 'tag', min: 0, max: 100, default: 0, inject: true, locked: false, fx: 'sparkle', note: '键=对象，值=0-100 程度', sample: { 老师: 50 } },
         { key: 'items', label: '随身物品', kind: 'list', default: '', inject: true, locked: false, sample: ['手机', '钥匙'] },
-        { key: 'injured', label: '受伤', kind: 'check', default: false, inject: true, locked: false, fx: 'stars', sample: false },
+        { key: 'injured', label: '受伤', kind: 'check', default: false, inject: true, locked: false, fx: 'stars', sample: true },
     ],
 };
 
@@ -30,12 +30,12 @@ export function defaultSettings() {
 }
 
 const KIND_DESC = {
-    bar: f => `0-${f.max ?? 100} 整数${f.note ? `，${f.note}` : ''}`,
+    bar: f => `0-${f.max ?? 100} 整数${f.note ? `，${f.note}` : ''}（无该状态时省略，不要用 0 占位）`,
     chip: f => f.note || '2-4 字短语',
     text: f => f.note || '一句话',
     tag: f => f.note ? `对象，${f.note}` : '对象，键=名称，值=0-100 整数',
     list: f => f.note ? `字符串数组，${f.note}` : '字符串数组',
-    check: f => f.note || 'true/false',
+    check: f => `${f.note || 'true/false'}（仅成立时输出）`,
 };
 
 function exampleValue(f) {
@@ -67,13 +67,14 @@ export function buildProtocolPrompt(template, { char = '{{char}}', withStateMacr
 ${lines.join('\n')}
 
 规则：
-1. 只输出当前有值的字段：没有值、不适用或剧情未涉及的字段省略该键；上轮有值但本轮已无值的字段也必须省略该键（省略即清空）。
-2. 上轮已有值且本轮仍有值的字段必须继续输出，禁止无故丢弃；数值变化必须有正文情节依据，正文没体现的变化沿用下方「当前状态」里的值。
-3. 输出示例（仅示意格式与省略方式，实际键集合按当前有值字段而定）：
+1. 宁缺勿滥：状态栏只反映角色当前真正有的状态，不要为了凑满而输出。没有的状态（例如角色并不恐惧、不疲劳）就不要输出对应字段，也不要用 0 或空值占位。
+2. 只输出当前有值的字段：没有值、不适用或剧情未涉及的字段省略该键；上轮有值但本轮已无值的字段也必须省略该键（省略即清空）。数值字段只在明显存在该状态时给出，处于基准或无明显变化的状态不输出；布尔字段只在成立时输出。
+3. 上轮已有值且本轮仍有意义的字段继续输出，禁止无故丢弃；数值变化必须有正文情节依据，正文没体现的变化沿用下方「当前状态」里的值。
+4. 输出示例（仅示意格式与省略方式，实际键集合按当前有值字段而定）：
 \`\`\`fs
 ${exampleJson}
 \`\`\`
-4. 严格合法 JSON：双引号、无注释、无单引号、无尾逗号。`;
+5. 严格合法 JSON：双引号、无注释、无单引号、无尾逗号。`;
     if (stateText !== undefined) {
         return `${body}\n\n当前状态：\n${stateText}`;
     }
